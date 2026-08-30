@@ -54,7 +54,7 @@ export default function ResidentModal({
   useEffect(() => {
     if (residentToEdit && residentToEdit.id) {
       // Editing existing resident profile
-      const matchedRoom = rooms.find(r => 
+      const matchedRoom = rooms.find(r =>
         (residentToEdit.room_id && (r.id === residentToEdit.room_id || String(r.id) === String(residentToEdit.room_id))) ||
         (residentToEdit.room_number && String(r.room_number) === String(residentToEdit.room_number))
       );
@@ -81,7 +81,7 @@ export default function ResidentModal({
       setPreviewUrl(residentToEdit.photo_url || '');
     } else if (residentToEdit && (residentToEdit.room_id || residentToEdit.room_number)) {
       // Pre-assigned room for new resident onboarding
-      const matchedRoom = rooms.find(r => 
+      const matchedRoom = rooms.find(r =>
         (residentToEdit.room_id && (r.id === residentToEdit.room_id || String(r.id) === String(residentToEdit.room_id))) ||
         (residentToEdit.room_number && String(r.room_number) === String(residentToEdit.room_number))
       );
@@ -135,7 +135,7 @@ export default function ResidentModal({
   if (!isOpen) return null;
 
   // Selected room object
-  const selectedRoom = rooms.find(r => 
+  const selectedRoom = rooms.find(r =>
     (formData.room_id && (r.id === formData.room_id || String(r.id) === String(formData.room_id))) ||
     (formData.room_number && String(r.room_number) === String(formData.room_number))
   );
@@ -220,7 +220,7 @@ export default function ResidentModal({
   };
 
   // Occupants of the currently selected room
-  const currentRoomOccupants = selectedRoom ? residents.filter(res => 
+  const currentRoomOccupants = selectedRoom ? residents.filter(res =>
     res.status === 'Active' &&
     res.id !== residentToEdit?.id &&
     ((res.room_id && res.room_id === selectedRoom.id) || (res.room_number && String(res.room_number) === String(selectedRoom.room_number)))

@@ -1061,6 +1061,20 @@ app.delete('/api/notices/:id', async (req, res) => {
   }
 });
 
+// ==============================================================================
+// 9. SERVE FRONTEND (Single-port deployment for Replit / Render / VPS)
+// ==============================================================================
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+      return res.sendFile(path.join(frontendDistPath, 'index.html'));
+    }
+    next();
+  });
+}
+
 // Central 404 & Error Handler
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Route not found', path: req.originalUrl });

@@ -74,7 +74,7 @@ export default function RoomsView({
   // KPI Calculations
   const totalRoomsCount = rooms.length;
   const totalBedsCount = rooms.reduce((acc, r) => acc + (Number(r.total_beds) || 0), 0);
-  
+
   // Real active occupants mapped to rooms
   const activeResidents = residents.filter(res => res.status === 'Active');
   const totalOccupiedBeds = rooms.reduce((acc, room) => {
