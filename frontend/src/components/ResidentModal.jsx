@@ -1,0 +1,574 @@
+import React, { useState, useEffect } from 'react';
+import {
+  X,
+  Upload,
+  User,
+  Phone,
+  Mail,
+  Building2,
+  Calendar,
+  IndianRupee,
+  Shield,
+  Heart,
+  UserCheck,
+  FileText,
+  BedDouble,
+  CheckCircle2,
+  AlertTriangle,
+  Info
+} from 'lucide-react';
+
+export default function ResidentModal({
+  isOpen,
+  onClose,
+  onSave,
+  residentToEdit,
+  rooms = [],
+  residents = []
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    father_name: '',
+    parent_phone: '',
+    joining_date: new Date().toISOString().split('T')[0],
+    agent_name: '',
+    deposit: 10000,
+    joining_payment_remarks: '',
+    room_id: '',
+    room_number: '',
+    monthly_rent: 7500,
+    email: '',
+    blood_group: 'B+',
+    college_or_work: '',
+    status: 'Active',
+    photo_url: '',
+    notes: ''
+  });
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (residentToEdit && residentToEdit.id) {
+      // Editing existing resident profile
+      const matchedRoom = rooms.find(r => 
+        (residentToEdit.room_id && (r.id === residentToEdit.room_id || String(r.id) === String(residentToEdit.room_id))) ||
+        (residentToEdit.room_number && String(r.room_number) === String(residentToEdit.room_number))
+      );
+
+      setFormData({
+        name: residentToEdit.name || '',
+        phone: residentToEdit.phone || '',
+        father_name: residentToEdit.father_name || residentToEdit.guardian_name || '',
+        parent_phone: residentToEdit.parent_phone || residentToEdit.guardian_phone || '',
+        joining_date: residentToEdit.joining_date || residentToEdit.admission_date || new Date().toISOString().split('T')[0],
+        agent_name: residentToEdit.agent_name || '',
+        deposit: residentToEdit.deposit !== undefined ? residentToEdit.deposit : (residentToEdit.security_deposit || 10000),
+        joining_payment_remarks: residentToEdit.joining_payment_remarks || residentToEdit.notes || '',
+        room_id: matchedRoom ? matchedRoom.id : (residentToEdit.room_id || ''),
+        room_number: matchedRoom ? matchedRoom.room_number : (residentToEdit.room_number || ''),
+        monthly_rent: residentToEdit.monthly_rent !== undefined ? residentToEdit.monthly_rent : (matchedRoom ? matchedRoom.monthly_rent : 7500),
+        email: residentToEdit.email || '',
+        blood_group: residentToEdit.blood_group || 'B+',
+        college_or_work: residentToEdit.college_or_work || '',
+        status: residentToEdit.status || 'Active',
+        photo_url: residentToEdit.photo_url || '',
+        notes: residentToEdit.notes || ''
+      });
+      setPreviewUrl(residentToEdit.photo_url || '');
+    } else if (residentToEdit && (residentToEdit.room_id || residentToEdit.room_number)) {
+      // Pre-assigned room for new resident onboarding
+      const matchedRoom = rooms.find(r => 
+        (residentToEdit.room_id && (r.id === residentToEdit.room_id || String(r.id) === String(residentToEdit.room_id))) ||
+        (residentToEdit.room_number && String(r.room_number) === String(residentToEdit.room_number))
+      );
+
+      setFormData({
+        name: '',
+        phone: '',
+        father_name: '',
+        parent_phone: '',
+        joining_date: new Date().toISOString().split('T')[0],
+        agent_name: '',
+        deposit: 10000,
+        joining_payment_remarks: '',
+        room_id: matchedRoom ? matchedRoom.id : (residentToEdit.room_id || ''),
+        room_number: matchedRoom ? matchedRoom.room_number : (residentToEdit.room_number || ''),
+        monthly_rent: matchedRoom ? matchedRoom.monthly_rent : (residentToEdit.monthly_rent || 7500),
+        email: '',
+        blood_group: 'B+',
+        college_or_work: '',
+        status: 'Active',
+        photo_url: '',
+        notes: ''
+      });
+      setPreviewUrl('');
+    } else {
+      setFormData({
+        name: '',
+        phone: '',
+        father_name: '',
+        parent_phone: '',
+        joining_date: new Date().toISOString().split('T')[0],
+        agent_name: '',
+        deposit: 10000,
+        joining_payment_remarks: '',
+        room_id: '',
+        room_number: '',
+        monthly_rent: rooms.length > 0 ? (rooms[0].monthly_rent || 7500) : 7500,
+        email: '',
+        blood_group: 'B+',
+        college_or_work: '',
+        status: 'Active',
+        photo_url: '',
+        notes: ''
+      });
+      setPreviewUrl('');
+    }
+    setSelectedFile(null);
+    setErrorMsg('');
+  }, [residentToEdit, isOpen, rooms]);
+
+  if (!isOpen) return null;
+
+  // Selected room object
+  const selectedRoom = rooms.find(r => 
+    (formData.room_id && (r.id === formData.room_id || String(r.id) === String(formData.room_id))) ||
+    (formData.room_number && String(r.room_number) === String(formData.room_number))
+  );
+
+  // Sorted rooms list
+  const sortedRooms = [...rooms].sort((a, b) => (parseInt(a.room_number) || 0) - (parseInt(b.room_number) || 0));
+
+  const handleRoomChange = (selectedVal) => {
+    if (!selectedVal) {
+      setFormData(prev => ({ ...prev, room_id: '', room_number: '' }));
+      return;
+    }
+
+    const roomObj = rooms.find(r => r.id === selectedVal || String(r.room_number) === String(selectedVal));
+    if (roomObj) {
+      setFormData(prev => ({
+        ...prev,
+        room_id: roomObj.id,
+        room_number: roomObj.room_number,
+        monthly_rent: roomObj.monthly_rent || prev.monthly_rent
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        room_id: '',
+        room_number: selectedVal
+      }));
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setErrorMsg('Resident Name and Phone number are required.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setErrorMsg('');
+
+      const submissionPayload = {
+        ...formData,
+        room_id: selectedRoom ? selectedRoom.id : (formData.room_id || null),
+        room_number: selectedRoom ? selectedRoom.room_number : (formData.room_number || ''),
+        guardian_name: formData.father_name,
+        guardian_phone: formData.parent_phone,
+        admission_date: formData.joining_date,
+        security_deposit: Number(formData.deposit),
+        deposit: Number(formData.deposit),
+        monthly_rent: Number(formData.monthly_rent),
+        notes: formData.joining_payment_remarks || formData.notes
+      };
+
+      if (selectedFile) {
+        const data = new FormData();
+        Object.keys(submissionPayload).forEach(key => {
+          if (submissionPayload[key] !== undefined && submissionPayload[key] !== null) {
+            data.append(key, submissionPayload[key]);
+          }
+        });
+        data.append('photo', selectedFile);
+        await onSave(data, residentToEdit?.id);
+      } else {
+        await onSave(submissionPayload, residentToEdit?.id);
+      }
+
+      onClose();
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to save resident.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Occupants of the currently selected room
+  const currentRoomOccupants = selectedRoom ? residents.filter(res => 
+    res.status === 'Active' &&
+    res.id !== residentToEdit?.id &&
+    ((res.room_id && res.room_id === selectedRoom.id) || (res.room_number && String(res.room_number) === String(selectedRoom.room_number)))
+  ) : [];
+
+  const occupiedCount = currentRoomOccupants.length;
+  const totalBeds = selectedRoom ? Number(selectedRoom.total_beds) : 0;
+  const isRoomFull = totalBeds > 0 && occupiedCount >= totalBeds;
+  const vacantBeds = Math.max(0, totalBeds - occupiedCount);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '92vh' }} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="modal-header">
+          <div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+              {residentToEdit ? 'Edit Resident Profile' : 'Resident Onboarding (ದಾಖಲಾತಿ)'}
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Register resident details, assign room and bed slot, parent contacts, and joining payment.
+            </p>
+          </div>
+          <button onClick={onClose} className="btn-icon">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {errorMsg && (
+              <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: '#ffe4e6', color: '#be123c', marginBottom: '16px', fontSize: '0.84rem', fontWeight: 600 }}>
+                ⚠️ {errorMsg}
+              </div>
+            )}
+
+            {/* Photo Upload Section */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px', padding: '14px', background: 'var(--bg-input)', borderRadius: 'var(--radius-lg)', flexWrap: 'wrap' }}>
+              <img
+                src={previewUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'}
+                alt="Avatar"
+                style={{ width: '68px', height: '68px', borderRadius: '16px', objectFit: 'cover', border: '2px solid var(--color-coral)', flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: '180px' }}>
+                <label className="form-label" style={{ marginBottom: '4px' }}>Resident Photo</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>
+                    <Upload size={14} /> Upload Picture
+                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                  </label>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    {selectedFile ? selectedFile.name : 'Attach passport / selfie photo'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 1. Basic Resident Information */}
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-coral)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.04em' }}>
+              1. Resident Information
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter full name"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Phone Number *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="e.g. +91 98765 43210"
+                  value={formData.phone}
+                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            {/* 2. Family & Referral Details */}
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-coral)', textTransform: 'uppercase', marginTop: '6px', marginBottom: '10px', letterSpacing: '0.04em' }}>
+              2. Parents & Referral Details
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Father’s Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter father's name"
+                  value={formData.father_name}
+                  onChange={e => setFormData({ ...formData, father_name: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Parents’ Phone Number *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="e.g. +91 98765 43219"
+                  value={formData.parent_phone}
+                  onChange={e => setFormData({ ...formData, parent_phone: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Joining Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={formData.joining_date}
+                  onChange={e => setFormData({ ...formData, joining_date: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Agent Name / Reference</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Nagaraj / Direct"
+                  value={formData.agent_name}
+                  onChange={e => setFormData({ ...formData, agent_name: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            {/* 3. Room & Bed Assignment */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1.5px solid #cbd5e1',
+              borderRadius: 'var(--radius-lg)',
+              padding: '16px',
+              marginTop: '10px',
+              marginBottom: '18px'
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--color-ruby)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <BedDouble size={17} /> 3. Room Assignment
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Select Room</label>
+                  <select
+                    value={selectedRoom ? selectedRoom.id : (formData.room_id || '')}
+                    onChange={e => handleRoomChange(e.target.value)}
+                    className="form-select"
+                    style={{ fontSize: '0.88rem', fontWeight: 600 }}
+                  >
+                    <option value="">-- Choose From Existing Rooms --</option>
+                    {sortedRooms.map(r => (
+                      <option key={r.id} value={r.id}>
+                        Room {r.room_number} ({r.total_beds} Sharing • ₹{r.monthly_rent}/mo)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Room Number *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 101"
+                    value={formData.room_number}
+                    onChange={e => handleRoomChange(e.target.value)}
+                    className="form-input"
+                    style={{ fontWeight: 800 }}
+                  />
+                </div>
+              </div>
+
+              {/* Selected Room Live Card */}
+              {selectedRoom && (
+                <div style={{
+                  marginTop: '10px',
+                  padding: '12px 14px',
+                  background: '#ffffff',
+                  borderRadius: 'var(--radius-md)',
+                  border: isRoomFull ? '1.5px solid #f87171' : '1.5px solid #86efac',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      background: 'var(--gradient-coral)',
+                      color: '#ffffff',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontWeight: 900,
+                      fontSize: '0.92rem'
+                    }}>
+                      Room {selectedRoom.room_number}
+                    </span>
+                    <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                      {selectedRoom.total_beds} Sharing Room • ₹{selectedRoom.monthly_rent}/mo
+                    </span>
+                  </div>
+
+                  <span className={`badge badge-${isRoomFull ? 'full' : 'available'}`}>
+                    {isRoomFull ? '⚠️ Full Capacity' : `✓ ${vacantBeds} of ${totalBeds} Beds Vacant`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 4. Payment Details (During Joining) */}
+            <div style={{
+              background: '#fff9f5',
+              border: '1.5px solid #fed7aa',
+              borderRadius: 'var(--radius-lg)',
+              padding: '16px',
+              marginTop: '8px',
+              marginBottom: '18px'
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#9a3412', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IndianRupee size={16} /> 4. Payment & Rent Details (During Joining)
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label" style={{ color: '#7c2d12' }}>Joining Deposit (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 10000"
+                    value={formData.deposit}
+                    onChange={e => setFormData({ ...formData, deposit: e.target.value })}
+                    className="form-input"
+                    style={{ borderColor: '#fed7aa', fontWeight: 800 }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ color: '#7c2d12' }}>Monthly Room Rent (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.monthly_rent}
+                    onChange={e => setFormData({ ...formData, monthly_rent: e.target.value })}
+                    className="form-input"
+                    style={{ borderColor: '#fed7aa', fontWeight: 800 }}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ color: '#7c2d12' }}>Other Payment Details / Advance Remarks</label>
+                <textarea
+                  rows="2"
+                  placeholder="Enter initial advance payment details, maintenance charges, receipt numbers, or special notes..."
+                  value={formData.joining_payment_remarks}
+                  onChange={e => setFormData({ ...formData, joining_payment_remarks: e.target.value })}
+                  className="form-textarea"
+                  style={{ borderColor: '#fed7aa' }}
+                />
+              </div>
+            </div>
+
+            {/* 5. Additional Resident Details */}
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-coral)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.04em' }}>
+              5. Profile Status & Personal Details
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="Active">Active Resident</option>
+                  <option value="Notice Period">Notice Period</option>
+                  <option value="Vacated">Vacated</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Blood Group</label>
+                <select
+                  value={formData.blood_group}
+                  onChange={e => setFormData({ ...formData, blood_group: e.target.value })}
+                  className="form-select"
+                >
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Workplace / College</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Infosys Ltd / Canara College"
+                  value={formData.college_or_work}
+                  onChange={e => setFormData({ ...formData, college_or_work: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="resident@example.com"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="modal-footer">
+            <button type="button" onClick={onClose} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn btn-coral">
+              {isSubmitting ? 'Saving...' : residentToEdit ? 'Update Resident' : 'Register Resident'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
