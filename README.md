@@ -204,12 +204,7 @@ Database setup and configuration can be found in:
 backend/supabase_schema.sql
 ```
 
-## Deployment
 
-For deployment instructions, refer to:
-
-```text
-DEPLOYMENT_GUIDE.md
 ```
 
 The guide contains the configuration and steps required to deploy the frontend and backend.
