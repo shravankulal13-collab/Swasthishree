@@ -28,7 +28,7 @@ export default function LoginPage({ onLoginSuccess }) {
           return;
         }
       } catch (backendErr) {
-        // Direct credential verification fallback (in case backend is waking up or offline)
+        // Direct credential verification fallback
         const cleanUser = username.trim().toLowerCase();
         const cleanPass = password.trim();
 
@@ -39,8 +39,7 @@ export default function LoginPage({ onLoginSuccess }) {
           const fallbackUser = {
             username: cleanUser === 'skchinnu' ? 'skchinnu' : 'swasthishree_mangalore',
             name: cleanUser === 'skchinnu' ? 'SK Chinnu' : 'Swasthishree Admin',
-            role: cleanUser === 'skchinnu' ? 'Admin (Manipal)' : 'Super Admin (Mangalore)',
-            location: cleanUser === 'skchinnu' ? 'Manipal' : 'Mangalore',
+            role: 'Admin',
             loggedInAt: new Date().toISOString()
           };
           api.setStoredUser(fallbackUser);
@@ -53,12 +52,6 @@ export default function LoginPage({ onLoginSuccess }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickSelect = (user, pass) => {
-    setUsername(user);
-    setPassword(pass);
-    setErrorMsg('');
   };
 
   return (
@@ -97,7 +90,7 @@ export default function LoginPage({ onLoginSuccess }) {
       {/* Main Login Card */}
       <div style={{
         width: '100%',
-        maxWidth: '440px',
+        maxWidth: '420px',
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 20px 45px -10px rgba(154, 52, 18, 0.15), 0 0 0 1px rgba(254, 215, 170, 0.6)',
@@ -107,12 +100,12 @@ export default function LoginPage({ onLoginSuccess }) {
       }}>
         {/* Header Branding */}
         <div style={{
-          padding: '34px 30px 24px',
+          padding: '36px 30px 24px',
           textAlign: 'center',
           background: 'linear-gradient(180deg, #fffaf5 0%, #ffffff 100%)',
           borderBottom: '1px solid #fed7aa'
         }}>
-          {/* Logo Badge */}
+          {/* Logo Badge with Building Icon */}
           <div style={{
             width: '64px',
             height: '64px',
@@ -123,11 +116,9 @@ export default function LoginPage({ onLoginSuccess }) {
             alignItems: 'center',
             justifyContent: 'center',
             color: '#ffffff',
-            fontWeight: 900,
-            fontSize: '1.7rem',
             boxShadow: '0 8px 20px rgba(234, 88, 12, 0.35)'
           }}>
-            ಸ್ವ
+            <Building2 size={32} color="#ffffff" />
           </div>
 
           <h1 style={{
@@ -193,7 +184,7 @@ export default function LoginPage({ onLoginSuccess }) {
                   type="text"
                   required
                   autoFocus
-                  placeholder="Username"
+                  placeholder="Enter username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   className="form-input"
@@ -218,7 +209,7 @@ export default function LoginPage({ onLoginSuccess }) {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Password"
+                  placeholder="Enter password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="form-input"
@@ -277,54 +268,6 @@ export default function LoginPage({ onLoginSuccess }) {
               )}
             </button>
           </form>
-
-          {/* Quick Account Switcher for Admin Convenience */}
-          <div style={{
-            marginTop: '24px',
-            paddingTop: '20px',
-            borderTop: '1px dashed #fed7aa',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Authorized Admin Accounts
-            </div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickSelect('swasthishree_mangalore', 'Swasthi@24')}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #fed7aa',
-                  background: '#fffaf5',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  color: '#9a3412',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)'
-                }}
-              >
-                📍 Mangalore Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickSelect('skchinnu', 'Manipal@0818')}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #fed7aa',
-                  background: '#fffaf5',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  color: '#9a3412',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)'
-                }}
-              >
-                📍 Manipal Admin
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

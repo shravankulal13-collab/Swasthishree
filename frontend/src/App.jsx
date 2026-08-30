@@ -12,7 +12,7 @@ import ReceiptModal from './components/ReceiptModal';
 import VisitorsLog from './components/VisitorsLog';
 import MessMenu from './components/MessMenu';
 import NoticesBoard from './components/NoticesBoard';
-import SupabaseSettingsModal from './components/SupabaseSettingsModal';
+import { Building2 } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 
 export default function App() {
@@ -241,16 +241,14 @@ export default function App() {
           alignItems: 'center',
           justifyContent: 'center',
           color: '#ffffff',
-          fontWeight: 900,
-          fontSize: '1.4rem',
           boxShadow: 'var(--shadow-lg)',
           marginBottom: '16px',
           animation: 'pulse 1.5s infinite'
         }}>
-          ಸ್ವ
+          <Building2 size={28} color="#ffffff" />
         </div>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-          Swasthishree (ಸ್ವಸ್ತಿ ಶ್ರೀ)
+          ಸ್ವಸ್ತಿ ಶ್ರೀ Swasthishree
         </h2>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
           Loading admin portal...

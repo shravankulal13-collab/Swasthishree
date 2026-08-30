@@ -212,15 +212,13 @@ const ADMIN_ACCOUNTS = [
     username: 'swasthishree_mangalore',
     password: 'Swasthi@24',
     name: 'Swasthishree Admin',
-    role: 'Super Admin',
-    location: 'Mangalore'
+    role: 'Admin'
   },
   {
     username: 'skchinnu',
     password: 'Manipal@0818',
     name: 'SK Chinnu',
-    role: 'Admin',
-    location: 'Manipal'
+    role: 'Admin'
   }
 ];
 
@@ -247,7 +245,6 @@ app.post('/api/auth/login', (req, res) => {
       username: matchedAdmin.username,
       name: matchedAdmin.name,
       role: matchedAdmin.role,
-      location: matchedAdmin.location,
       token,
       loggedInAt: new Date().toISOString()
     };
