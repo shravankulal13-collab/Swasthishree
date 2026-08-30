@@ -97,69 +97,82 @@ let localMockStore = {
   residents: [],
   payments: [],
   visitors: [],
+  mess_timings: {
+    breakfast: '7:30 AM - 9:30 AM',
+    lunch: '12:30 PM - 2:30 PM',
+    snacks: '5:00 PM - 6:30 PM',
+    dinner: '7:30 PM - 9:30 PM'
+  },
   mess_menu: [
     {
       id: 'menu-1',
       day_of_week: 'Monday',
-      breakfast: 'Idli, Sambar, Coconut Chutney, Tea/Coffee',
-      lunch: 'South Indian Meals: Rice, Sambar, Rasam, Beans Poriyal, Curd, Papad',
-      snacks: 'Veg Puff & Tea / Badam Milk',
-      dinner: 'Chapati, Paneer Butter Masala, Jeera Rice, Dal Fry, Salad',
-      special_notes: 'Fresh fruit served with dinner'
+      day_order: 1,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-2',
       day_of_week: 'Tuesday',
-      breakfast: 'Poori with Potato Sagu, Fruit Bowl, Tea/Coffee',
-      lunch: 'Steamed Rice, Tomato Rasam, Drumstick Dal, Cabbage Sabzi, Buttermilk',
-      snacks: 'Onion Pakoda & Filter Coffee',
-      dinner: 'Veg Pulao, Raita, Mixed Veg Curry, Phulka, Sweet Kheer',
-      special_notes: 'Special Payasam on Tuesday night'
+      day_order: 2,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-3',
       day_of_week: 'Wednesday',
-      breakfast: 'Masala Dosa with Chutney & Sambar, Boiled Eggs / Banana',
-      lunch: 'Ghee Rice, Chicken Curry (Non-Veg) / Paneer Curry (Veg), Dal Tadka, Salad',
-      snacks: 'Samosa with Mint Chutney & Tea',
-      dinner: 'Roti, Dal Makhani, Steamed Rice, Curd Rice, Papad',
-      special_notes: 'Non-Veg & Special Veg feast'
+      day_order: 3,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-4',
       day_of_week: 'Thursday',
-      breakfast: 'Set Dosa, Vegetable Kurma, Filter Coffee',
-      lunch: 'Full Rice Meals, Ridge Gourd Dal, Aloo Fry, Rasam, Curd',
-      snacks: 'Biscuits, Banana & Masala Chai',
-      dinner: 'Phulka, Kadai Veg, Lemon Rice, Rasam, Gulab Jamun',
-      special_notes: 'Hot Gulab Jamun dessert'
+      day_order: 4,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-5',
       day_of_week: 'Friday',
-      breakfast: 'Upma, Kesari Bath (Chow Chow Bath), Chutney, Coffee',
-      lunch: 'Mangalore Style Fish Curry (Non-Veg) / Paneer Ghee Roast (Veg), Rice, Rasam',
-      snacks: 'Veg Cutlet & Lemon Tea',
-      dinner: 'North Indian Thali: Butter Naan, Shahi Paneer, Dal Fry, Jeera Rice',
-      special_notes: 'Weekend kickoff dinner'
+      day_order: 5,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-6',
       day_of_week: 'Saturday',
-      breakfast: 'Aloo Paratha with Curd & Pickle, Tea/Coffee',
-      lunch: 'Bisi Bele Bath, Boondi, Steamed Rice, Pepper Rasam, Curd',
-      snacks: 'Mirchi Bajji & Filter Tea',
-      dinner: 'Fried Rice, Veg Manchurian / Chilli Chicken, Hakka Noodles, Ice Cream',
-      special_notes: 'Chinese Combo Night'
+      day_order: 6,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     },
     {
       id: 'menu-7',
       day_of_week: 'Sunday',
-      breakfast: 'Special Masala Omelette / Bread Butter Jam / Poha, Juice',
-      lunch: 'Special Sunday Dum Biryani (Chicken/Veg), Salan, Raitha, Egg, Dessert',
-      snacks: 'Sweet Corn / Maggi & Chai',
-      dinner: 'Soft Phulkas, Dal Tadka, Steamed Rice, Tomato Rasam, Ice Cream',
-      special_notes: 'Extended breakfast timings: 8:00 AM - 10:30 AM'
+      day_order: 7,
+      breakfast: '',
+      lunch: '',
+      snacks: '',
+      dinner: '',
+      special_notes: ''
     }
   ],
   notices: [

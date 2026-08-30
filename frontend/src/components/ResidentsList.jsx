@@ -85,9 +85,6 @@ export default function ResidentsList({
               {residents.length} Members
             </span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
-            Resident database with contact records, father/parents info, joining deposit, and 12-month payment sheets.
-          </p>
         </div>
 
         <button onClick={onOpenAddResident} className="btn btn-coral">

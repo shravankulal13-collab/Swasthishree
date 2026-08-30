@@ -68,9 +68,6 @@ export default function VisitorsLog({
               {activeVisitors.length} Active in Premises
             </span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
-            Record guest entry, verify relationship with host resident, and log departure timestamps.
-          </p>
         </div>
 
         <button onClick={() => setIsModalOpen(true)} className="btn btn-coral">

@@ -46,9 +46,6 @@ export default function NoticesBoard({ notices = [], onCreateNotice, onDeleteNot
               {notices.length} Published
             </span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
-            Broadcast hostel circulars, mess announcements, and celebration notices to all residents.
-          </p>
         </div>
 
         <button onClick={() => setIsModalOpen(true)} className="btn btn-coral">

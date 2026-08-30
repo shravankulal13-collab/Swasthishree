@@ -19,6 +19,7 @@ export default function DashboardOverview({
   residents = [],
   payments = [],
   messMenu = [],
+  messTimings = null,
   notices = [],
   setActiveTab,
   onOpenAddResident,
@@ -266,9 +267,6 @@ export default function DashboardOverview({
                 {currentMonthYear} Rent Collection & Fee Status
               </h3>
             </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Track fee collections: {paidResidents.length} paid, {unpaidResidents.length} pending dues.
-            </p>
           </div>
 
           <button
@@ -379,27 +377,46 @@ export default function DashboardOverview({
             </button>
           </div>
 
-          {todaysMenu ? (
+          {todaysMenu && (todaysMenu.breakfast || todaysMenu.lunch || todaysMenu.snacks || todaysMenu.dinner) ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
               <div style={{ padding: '10px 12px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🍳 Breakfast</div>
-                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.breakfast}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>🍳 Breakfast</span>
+                  {messTimings?.breakfast && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{messTimings.breakfast}</span>}
+                </div>
+                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.breakfast || 'Not set'}</div>
               </div>
               <div style={{ padding: '10px 12px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🍛 Lunch</div>
-                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.lunch}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>🍛 Lunch</span>
+                  {messTimings?.lunch && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{messTimings.lunch}</span>}
+                </div>
+                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.lunch || 'Not set'}</div>
               </div>
               <div style={{ padding: '10px 12px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c2410c', textTransform: 'uppercase' }}>☕ Snacks & Tea</div>
-                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.snacks}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c2410c', textTransform: 'uppercase' }}>☕ Snacks</span>
+                  {messTimings?.snacks && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{messTimings.snacks}</span>}
+                </div>
+                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.snacks || 'Not set'}</div>
               </div>
               <div style={{ padding: '10px 12px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase' }}>🍲 Dinner</div>
-                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.dinner}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase' }}>🍲 Dinner</span>
+                  {messTimings?.dinner && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{messTimings.dinner}</span>}
+                </div>
+                <div style={{ fontSize: '0.84rem', marginTop: '4px', fontWeight: 600, wordBreak: 'break-word' }}>{todaysMenu.dinner || 'Not set'}</div>
               </div>
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Menu schedule not configured.</p>
+            <div style={{ padding: '24px 16px', textAlign: 'center', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.84rem', margin: 0 }}>
+                Today's dining menu is currently empty.
+              </p>
+              <button onClick={() => setActiveTab('mess')} className="btn btn-coral btn-sm" style={{ marginTop: '10px', fontSize: '0.78rem' }}>
+                + Configure Today's Menu
+              </button>
+            </div>
           )}
         </div>
       </div>

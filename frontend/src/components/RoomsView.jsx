@@ -267,9 +267,6 @@ export default function RoomsView({
               {rooms.length} Active Rooms
             </span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
-            Admin controls to add custom room numbers, configure room rent prices, edit occupancy capacity, and delete rooms.
-          </p>
         </div>
 
         <button

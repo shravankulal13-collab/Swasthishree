@@ -918,6 +918,63 @@ app.put('/api/mess-menu/:id', async (req, res) => {
   }
 });
 
+app.get('/api/mess-timings', async (req, res) => {
+  try {
+    if (isSupabaseConfigured && supabase) {
+      const { data } = await supabase.from('notices').select('*').eq('category', 'MessTimings').maybeSingle();
+      if (data && data.message) {
+        try {
+          return res.json(JSON.parse(data.message));
+        } catch (e) {}
+      }
+    }
+    res.json(localMockStore.mess_timings || {
+      breakfast: '7:30 AM - 9:30 AM',
+      lunch: '12:30 PM - 2:30 PM',
+      snacks: '5:00 PM - 6:30 PM',
+      dinner: '7:30 PM - 9:30 PM'
+    });
+  } catch (err) {
+    res.json(localMockStore.mess_timings);
+  }
+});
+
+app.put('/api/mess-timings', async (req, res) => {
+  try {
+    const { breakfast, lunch, snacks, dinner } = req.body;
+    const timings = {
+      breakfast: breakfast || '',
+      lunch: lunch || '',
+      snacks: snacks || '',
+      dinner: dinner || ''
+    };
+
+    localMockStore.mess_timings = timings;
+
+    if (isSupabaseConfigured && supabase) {
+      const { data: existing } = await supabase.from('notices').select('id').eq('category', 'MessTimings').maybeSingle();
+      if (existing) {
+        await supabase.from('notices').update({
+          message: JSON.stringify(timings),
+          title: 'Dining Timings Configuration'
+        }).eq('id', existing.id);
+      } else {
+        await supabase.from('notices').insert([{
+          title: 'Dining Timings Configuration',
+          message: JSON.stringify(timings),
+          category: 'MessTimings',
+          priority: 'Normal',
+          is_pinned: false
+        }]);
+      }
+    }
+
+    res.json(timings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==============================================================================
 // 8. NOTICES & ANNOUNCEMENTS API
 // ==============================================================================

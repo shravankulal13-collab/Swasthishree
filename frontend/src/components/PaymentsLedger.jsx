@@ -171,9 +171,6 @@ export default function PaymentsLedger({
               {residents.length} Total Residents
             </span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '2px' }}>
-            Track monthly room rent payments, separate Paid and Unpaid members, and record GPay or Cash payments.
-          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>

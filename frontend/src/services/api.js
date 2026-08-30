@@ -173,7 +173,7 @@ export const api = {
     return res.json();
   },
 
-  // Mess Menu
+  // Mess Menu & Timings
   async getMessMenu() {
     const res = await fetch(`${BASE_URL}/mess-menu`);
     if (!res.ok) throw new Error('Failed to fetch mess menu');
@@ -189,6 +189,29 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || err.message || 'Failed to update mess menu');
+    }
+    return res.json();
+  },
+
+  async getMessTimings() {
+    try {
+      const res = await fetch(`${BASE_URL}/mess-timings`);
+      if (!res.ok) return null;
+      return res.json();
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async updateMessTimings(data) {
+    const res = await fetch(`${BASE_URL}/mess-timings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || 'Failed to update mess timings');
     }
     return res.json();
   },

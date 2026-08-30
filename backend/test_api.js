@@ -125,11 +125,46 @@ async function runTests() {
   const deleteResult = await deleteRoomRes.json();
   console.log('✅ 10. Deleted Room:', deleteResult);
 
-  // 11. Verify Frontend Server
-  const frontRes = await fetch('http://localhost:5173');
-  console.log('✅ 11. Frontend Server Live Response Status:', frontRes.status);
+  // 11. Test Mess Menu initial state & custom update
+  const messMenuRes = await fetch(`${baseURL}/mess-menu`);
+  const messMenuData = await messMenuRes.json();
+  const firstDay = messMenuData[0] || {};
+  console.log('✅ 11. Mess Menu Loaded (Days count):', messMenuData.length, '| Day:', firstDay.day_of_week);
 
-  console.log('\n🎉 ALL SWASTHISHREE (ಸ್ವಸ್ತಿ ಶ್ರೀ) ROOM MANAGEMENT & DATA TESTS PASSED!');
+  const updateMenuRes = await fetch(`${baseURL}/mess-menu/${firstDay.id || 'menu-1'}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      day_of_week: firstDay.day_of_week || 'Monday',
+      breakfast: 'Masala Dosa & Filter Coffee',
+      lunch: 'South Indian Thali',
+      snacks: 'Tea & Biscuits',
+      dinner: 'Phulka & Mixed Veg Curry',
+      special_notes: 'Fresh sweet fruit'
+    })
+  });
+  const updatedMenu = await updateMenuRes.json();
+  console.log('✅ 12. Updated Custom Day Menu Breakfast:', updatedMenu.breakfast);
+
+  // 13. Test Mess Timings GET & PUT
+  const updateTimingsRes = await fetch(`${baseURL}/mess-timings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      breakfast: '7:00 AM - 9:30 AM',
+      lunch: '12:30 PM - 2:30 PM',
+      snacks: '5:00 PM - 6:30 PM',
+      dinner: '7:30 PM - 9:45 PM'
+    })
+  });
+  const updatedTimings = await updateTimingsRes.json();
+  console.log('✅ 13. Updated Custom Dining Timings: Breakfast:', updatedTimings.breakfast, '| Dinner:', updatedTimings.dinner);
+
+  // 14. Verify Frontend Server
+  const frontRes = await fetch('http://localhost:5173');
+  console.log('✅ 14. Frontend Server Live Response Status:', frontRes.status);
+
+  console.log('\n🎉 ALL SWASTHISHREE (ಸ್ವಸ್ತಿ ಶ್ರೀ) TESTS PASSED SUCCESSFULLY!');
 }
 
 runTests().catch(err => {

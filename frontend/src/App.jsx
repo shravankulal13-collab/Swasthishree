@@ -26,6 +26,7 @@ export default function App() {
   const [payments, setPayments] = useState([]);
   const [visitors, setVisitors] = useState([]);
   const [messMenu, setMessMenu] = useState([]);
+  const [messTimings, setMessTimings] = useState(null);
   const [notices, setNotices] = useState([]);
   const [supabaseStatus, setSupabaseStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +58,7 @@ export default function App() {
         paymentsRes,
         visitorsRes,
         messRes,
+        timingsRes,
         noticesRes
       ] = await Promise.allSettled([
         api.getHealth(),
@@ -66,6 +68,7 @@ export default function App() {
         api.getPayments(),
         api.getVisitors(),
         api.getMessMenu(),
+        api.getMessTimings(),
         api.getNotices()
       ]);
 
@@ -76,6 +79,7 @@ export default function App() {
       if (paymentsRes.status === 'fulfilled') setPayments(paymentsRes.value);
       if (visitorsRes.status === 'fulfilled') setVisitors(visitorsRes.value);
       if (messRes.status === 'fulfilled') setMessMenu(messRes.value);
+      if (timingsRes.status === 'fulfilled') setMessTimings(timingsRes.value);
       if (noticesRes.status === 'fulfilled') setNotices(noticesRes.value);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -196,10 +200,16 @@ export default function App() {
     await loadAllData();
   };
 
-  // Handlers for Mess Menu
+  // Handlers for Mess Menu & Timings
   const handleUpdateMessMenu = async (id, data) => {
     await api.updateMessMenu(id, data);
     showToast('✅ Mess menu updated');
+    await loadAllData();
+  };
+
+  const handleUpdateMessTimings = async (data) => {
+    await api.updateMessTimings(data);
+    showToast('✅ Dining timings updated');
     await loadAllData();
   };
 
@@ -245,6 +255,7 @@ export default function App() {
             residents={residents}
             payments={payments}
             messMenu={messMenu}
+            messTimings={messTimings}
             notices={notices}
             setActiveTab={setActiveTab}
             onOpenAddResident={() => {
@@ -328,7 +339,9 @@ export default function App() {
         {activeTab === 'mess' && (
           <MessMenu
             messMenu={messMenu}
+            messTimings={messTimings}
             onUpdateMessMenu={handleUpdateMessMenu}
+            onUpdateMessTimings={handleUpdateMessTimings}
           />
         )}
 
