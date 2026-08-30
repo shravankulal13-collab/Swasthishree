@@ -203,14 +203,3 @@ Database setup and configuration can be found in:
 ```text
 backend/supabase_schema.sql
 ```
-
-
-```
-
-The guide contains the configuration and steps required to deploy the frontend and backend.
-
-## Project
-
-**Swasthishree — Hostel & Resident Management System**
-
-Built to make hostel administration simpler, more organized, and easier to manage from a single platform.
