@@ -10,6 +10,7 @@ import {
   Bell,
   UserCheck,
   Menu,
+  LogOut,
   X
 } from 'lucide-react';
 
@@ -17,7 +18,9 @@ export default function Header({
   activeTab,
   setActiveTab,
   onOpenAddResident,
-  residentCount = 0
+  residentCount = 0,
+  currentUser,
+  onLogout
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -137,6 +140,36 @@ export default function Header({
           </button>
         </nav>
 
+        {/* User Badge & Logout in Desktop */}
+        <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+          {currentUser && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(255, 255, 255, 0.85)',
+              border: '1px solid #fed7aa',
+              fontSize: '0.76rem',
+              fontWeight: 800,
+              color: '#9a3412'
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />
+              <span>{currentUser.name || currentUser.username}</span>
+            </div>
+          )}
+          <button
+            onClick={onLogout}
+            className="btn btn-secondary btn-sm"
+            style={{ fontSize: '0.74rem', padding: '4px 8px', color: '#be123c', borderColor: '#fecdd3' }}
+            title="Sign Out"
+          >
+            <LogOut size={13} />
+            <span>Logout</span>
+          </button>
+        </div>
+
         {/* Mobile Header Actions (Quick Add + Hamburger Toggle) */}
         <div className="mobile-header-actions">
           <button
@@ -199,7 +232,7 @@ export default function Header({
           </button>
         </div>
 
-        {/* Navigation Item Links */}
+        {/* Mobile Navigation List */}
         <nav className="mobile-drawer-nav">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -210,20 +243,32 @@ export default function Header({
                 onClick={() => handleNavClick(item.id)}
                 className={`mobile-nav-item ${isActive ? 'active' : ''}`}
               >
-                <div className="mobile-nav-icon-wrap">
+                <div className="mobile-nav-item-icon">
                   <Icon size={18} />
                 </div>
                 <span className="mobile-nav-item-label">{item.label}</span>
-                {isActive && <span className="mobile-nav-indicator" />}
               </button>
             );
           })}
         </nav>
 
-        {/* Footer in Drawer */}
-        <div className="mobile-drawer-footer">
-          <p className="drawer-footer-title">Swasthishree Hostel & PG</p>
-          <p className="drawer-footer-sub">Official Management Portal</p>
+        {/* User Badge & Logout in Mobile */}
+        <div style={{ marginTop: 'auto', padding: '16px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+            <span>{currentUser?.name || currentUser?.username || 'Admin'}</span>
+          </div>
+          <button
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              onLogout();
+            }}
+            className="btn btn-secondary btn-sm"
+            style={{ width: '100%', justifyContent: 'center', color: '#be123c', borderColor: '#fecdd3' }}
+          >
+            <LogOut size={14} />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
     </>

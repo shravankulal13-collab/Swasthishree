@@ -205,6 +205,64 @@ async function syncRoomOccupancy(roomId, roomNumber) {
 }
 
 // ==============================================================================
+// 0. ADMIN AUTHENTICATION API
+// ==============================================================================
+const ADMIN_ACCOUNTS = [
+  {
+    username: 'swasthishree_mangalore',
+    password: 'Swasthi@24',
+    name: 'Swasthishree Admin',
+    role: 'Super Admin',
+    location: 'Mangalore'
+  },
+  {
+    username: 'skchinnu',
+    password: 'Manipal@0818',
+    name: 'SK Chinnu',
+    role: 'Admin',
+    location: 'Manipal'
+  }
+];
+
+app.post('/api/auth/login', (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    const cleanUsername = String(username).trim().toLowerCase();
+    const cleanPassword = String(password).trim();
+
+    const matchedAdmin = ADMIN_ACCOUNTS.find(
+      acc => acc.username.toLowerCase() === cleanUsername && acc.password === cleanPassword
+    );
+
+    if (!matchedAdmin) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const token = `auth-${Buffer.from(`${matchedAdmin.username}:${Date.now()}`).toString('base64')}`;
+    const userPayload = {
+      username: matchedAdmin.username,
+      name: matchedAdmin.name,
+      role: matchedAdmin.role,
+      location: matchedAdmin.location,
+      token,
+      loggedInAt: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      message: `Welcome back, ${matchedAdmin.name}!`,
+      user: userPayload
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==============================================================================
 // 1. HEALTH & SYSTEM DIAGNOSTICS
 // ==============================================================================
 app.get('/api/health', async (req, res) => {

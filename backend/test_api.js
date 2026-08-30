@@ -3,15 +3,41 @@ async function runTests() {
   const baseURL = 'http://localhost:5000/api';
   console.log('🧪 Starting Clean Slate & Live Data Verification Tests...\n');
 
+  // 0a. Admin Auth Test - User 1 (swasthishree_mangalore)
+  const auth1Res = await fetch(`${baseURL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'swasthishree_mangalore', password: 'Swasthi@24' })
+  });
+  const auth1 = await auth1Res.json();
+  console.log('✅ 0a. Admin 1 Auth (swasthishree_mangalore):', auth1.user?.name, '| Token:', auth1.user?.token?.substring(0, 15) + '...');
+
+  // 0b. Admin Auth Test - User 2 (skchinnu)
+  const auth2Res = await fetch(`${baseURL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'skchinnu', password: 'Manipal@0818' })
+  });
+  const auth2 = await auth2Res.json();
+  console.log('✅ 0b. Admin 2 Auth (skchinnu):', auth2.user?.name, '| Role:', auth2.user?.role);
+
+  // 0c. Admin Auth Test - Invalid Password
+  const authFailRes = await fetch(`${baseURL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'skchinnu', password: 'WrongPassword' })
+  });
+  console.log('✅ 0c. Invalid Password Status (Should be 401):', authFailRes.status);
+
   // 1. Health Check
   const healthRes = await fetch(`${baseURL}/health`);
   const health = await healthRes.json();
   console.log('✅ 1. Health Check:', health.system, '| Status:', health.status);
 
-  // 2. Initial Fresh Stats (Must be 0 residents initially)
+  // 2. Initial Fresh Stats
   const statsRes = await fetch(`${baseURL}/stats`);
   const stats = await statsRes.json();
-  console.log('✅ 2. Initial Fresh Stats: Residents:', stats.totalResidents, '| Revenue: ₹' + stats.totalRevenueCollected);
+  console.log('✅ 2. Initial Stats: Residents:', stats.totalResidents, '| Revenue: ₹' + stats.totalRevenueCollected);
 
   // 3. Register First Real Resident (Aryan Sharma)
   const newResidentRes = await fetch(`${baseURL}/residents`, {

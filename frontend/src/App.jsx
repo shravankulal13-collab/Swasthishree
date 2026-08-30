@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from './services/api';
+import { api, getStoredUser } from './services/api';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
 import ResidentsList from './components/ResidentsList';
@@ -13,8 +13,12 @@ import VisitorsLog from './components/VisitorsLog';
 import MessMenu from './components/MessMenu';
 import NoticesBoard from './components/NoticesBoard';
 import SupabaseSettingsModal from './components/SupabaseSettingsModal';
+import LoginPage from './components/LoginPage';
 
 export default function App() {
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
+
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
   const [globalSearch, setGlobalSearch] = useState('');
@@ -49,6 +53,10 @@ export default function App() {
 
   // Load live data from backend / Supabase
   const loadAllData = useCallback(async () => {
+    if (!currentUser) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const [
         healthRes,
@@ -86,20 +94,31 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     loadAllData();
   }, [loadAllData]);
 
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    showToast(`Welcome, ${user.name || user.username}!`);
+  };
+
+  const handleLogout = () => {
+    api.logout();
+    setCurrentUser(null);
+    showToast('Signed out successfully');
+  };
+
   // Handlers for Residents
   const handleSaveResident = async (formDataOrJson, id) => {
     if (id) {
       await api.updateResident(id, formDataOrJson);
-      showToast('✅ Resident updated successfully');
+      showToast('✅ Resident profile updated');
     } else {
       await api.createResident(formDataOrJson);
-      showToast('✅ New resident registered successfully');
+      showToast('✅ New resident registered');
     }
     await loadAllData();
   };
@@ -114,76 +133,47 @@ export default function App() {
 
   // Handlers for Rooms
   const handleCreateRoom = async (roomData) => {
-    try {
-      await api.createRoom(roomData);
-      showToast(`✅ Room ${roomData.room_number || ''} added with rent ₹${Number(roomData.monthly_rent || 0).toLocaleString('en-IN')}`);
-      await loadAllData();
-      return true;
-    } catch (err) {
-      showToast(`⚠️ ${err.message || 'Failed to create room'}`);
-      throw err;
-    }
+    await api.createRoom(roomData);
+    showToast(`✅ Room ${roomData.room_number} created`);
+    await loadAllData();
   };
 
   const handleUpdateRoom = async (id, roomData) => {
-    try {
-      await api.updateRoom(id, roomData);
-      showToast(`✅ Room ${roomData.room_number || ''} details & price updated`);
-      await loadAllData();
-      return true;
-    } catch (err) {
-      showToast(`⚠️ ${err.message || 'Failed to update room'}`);
-      throw err;
-    }
-  };
-
-  const handleDeleteRoom = async (id, roomNumber) => {
-    try {
-      await api.deleteRoom(id);
-      showToast(`🗑️ Room ${roomNumber || ''} deleted successfully`);
-      await loadAllData();
-      return true;
-    } catch (err) {
-      showToast(`⚠️ ${err.message || 'Failed to delete room'}`);
-      throw err;
-    }
-  };
-
-  // Handlers for Payments
-  const handleCreatePayment = async (paymentData) => {
-    // Check if payment already exists for this resident and month
-    const existing = payments.find(p =>
-      (p.resident_id === paymentData.resident_id || (p.resident_name && p.resident_name === paymentData.resident_name)) &&
-      p.month_year === paymentData.month_year
-    );
-
-    let savedPayment;
-    if (existing && existing.id) {
-      savedPayment = await api.updatePayment(existing.id, paymentData);
-      showToast(`✅ ${paymentData.month_year} payment updated (${paymentData.payment_method})`);
-    } else {
-      savedPayment = await api.createPayment(paymentData);
-      showToast(`✅ ${paymentData.month_year} payment recorded (${paymentData.payment_method})`);
-    }
-
+    await api.updateRoom(id, roomData);
+    showToast(`✅ Room updated`);
     await loadAllData();
-    return savedPayment;
+  };
+
+  const handleDeleteRoom = async (id) => {
+    await api.deleteRoom(id);
+    showToast('Room deleted successfully');
+    await loadAllData();
+  };
+
+  // Handlers for Payments & Ledger
+  const handleCreatePayment = async (paymentData) => {
+    const res = await api.createPayment(paymentData);
+    showToast(`Payment recorded: ₹${paymentData.amount}`);
+    await loadAllData();
+    return res;
+  };
+
+  const handleUpdatePayment = async (id, paymentData) => {
+    await api.updatePayment(id, paymentData);
+    showToast(`Payment updated`);
+    await loadAllData();
   };
 
   const handleDeletePayment = async (id) => {
-    await api.deletePayment(id);
-    showToast('Payment record deleted');
-    await loadAllData();
+    if (window.confirm('Are you sure you want to delete this payment record?')) {
+      await api.deletePayment(id);
+      showToast('Payment record deleted');
+      await loadAllData();
+    }
   };
 
-  // Monthly Ledger Opener
-  const handleOpenMonthlyLedger = (res) => {
-    const targetResident = res || residents[0];
-    if (!targetResident) {
-      showToast('⚠️ Please register a resident first to view payment ledger.');
-      return;
-    }
-    setMonthlyLedgerResident(targetResident);
+  const handleOpenMonthlyLedger = (resident) => {
+    setMonthlyLedgerResident(resident);
     setIsMonthlyLedgerOpen(true);
   };
 
@@ -209,34 +199,87 @@ export default function App() {
   // Handlers for Mess Menu & Timings
   const handleUpdateMessMenu = async (id, data) => {
     await api.updateMessMenu(id, data);
-    showToast('✅ Mess menu updated');
+    showToast('Dining menu saved');
     await loadAllData();
   };
 
   const handleUpdateMessTimings = async (data) => {
     await api.updateMessTimings(data);
-    showToast('✅ Dining timings updated');
+    showToast('Dining timings saved');
     await loadAllData();
   };
 
   // Handlers for Notices
   const handleCreateNotice = async (data) => {
     await api.createNotice(data);
-    showToast('✅ Announcement posted');
+    showToast('📢 Notice broadcasted');
     await loadAllData();
   };
 
   const handleDeleteNotice = async (id) => {
-    await api.deleteNotice(id);
-    showToast('Notice removed');
-    await loadAllData();
+    if (window.confirm('Remove this announcement?')) {
+      await api.deleteNotice(id);
+      showToast('Notice removed');
+      await loadAllData();
+    }
   };
 
+  // Unauthenticated Gate
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}>
+        <div style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '16px',
+          background: 'var(--gradient-coral)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff',
+          fontWeight: 900,
+          fontSize: '1.4rem',
+          boxShadow: 'var(--shadow-lg)',
+          marginBottom: '16px',
+          animation: 'pulse 1.5s infinite'
+        }}>
+          ಸ್ವ
+        </div>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+          Swasthishree (ಸ್ವಸ್ತಿ ಶ್ರೀ)
+        </h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+          Loading admin portal...
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="app-root-layout">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="toast-notification">
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: '#0f172a',
+          color: '#ffffff',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-lg)',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'slideUp 0.3s ease-out'
+        }}>
           {toastMessage}
         </div>
       )}
@@ -250,6 +293,8 @@ export default function App() {
           setIsResidentModalOpen(true);
         }}
         residentCount={residents.length}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -300,16 +345,8 @@ export default function App() {
             onCreateRoom={handleCreateRoom}
             onUpdateRoom={handleUpdateRoom}
             onDeleteRoom={handleDeleteRoom}
-            onAssignResident={(targetRoom) => {
-              if (targetRoom) {
-                setResidentToEdit({
-                  room_id: targetRoom.id,
-                  room_number: targetRoom.room_number,
-                  monthly_rent: targetRoom.monthly_rent
-                });
-              } else {
-                setResidentToEdit(null);
-              }
+            onAssignResident={(room) => {
+              setResidentToEdit({ room_id: room.id, room_number: room.room_number, monthly_rent: room.monthly_rent });
               setIsResidentModalOpen(true);
             }}
           />
@@ -319,11 +356,9 @@ export default function App() {
           <PaymentsLedger
             payments={payments}
             residents={residents}
-            onCreatePayment={async (pData) => {
-              const res = await handleCreatePayment(pData);
-              setSelectedPaymentReceipt(res);
-              setIsReceiptModalOpen(true);
-            }}
+            rooms={rooms}
+            onCreatePayment={handleCreatePayment}
+            onUpdatePayment={handleUpdatePayment}
             onDeletePayment={handleDeletePayment}
             onViewReceipt={(p) => {
               setSelectedPaymentReceipt(p);
@@ -347,8 +382,8 @@ export default function App() {
           <MessMenu
             messMenu={messMenu}
             messTimings={messTimings}
-            onUpdateMessMenu={handleUpdateMessMenu}
-            onUpdateMessTimings={handleUpdateMessTimings}
+            onUpdateDay={handleUpdateMessMenu}
+            onUpdateTimings={handleUpdateMessTimings}
           />
         )}
 
@@ -375,8 +410,8 @@ export default function App() {
       />
 
       <ResidentDetailsModal
-        isOpen={Boolean(viewingResident)}
         resident={viewingResident}
+        isOpen={!!viewingResident}
         onClose={() => setViewingResident(null)}
         onEdit={(res) => {
           setViewingResident(null);
