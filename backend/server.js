@@ -868,6 +868,22 @@ app.patch('/api/visitors/:id/checkout', async (req, res) => {
   }
 });
 
+app.delete('/api/visitors/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('visitors').delete().eq('id', id);
+      if (error) throw error;
+      return res.json({ message: 'Visitor entry deleted', id });
+    }
+
+    localMockStore.visitors = localMockStore.visitors.filter(v => v.id !== id);
+    res.json({ message: 'Visitor entry deleted', id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==============================================================================
 // 7. MESS MENU API
 // ==============================================================================

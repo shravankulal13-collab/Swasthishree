@@ -200,6 +200,12 @@ export default function App() {
     await loadAllData();
   };
 
+  const handleDeleteVisitor = async (id) => {
+    await api.deleteVisitor(id);
+    showToast('Visitor entry deleted');
+    await loadAllData();
+  };
+
   // Handlers for Mess Menu & Timings
   const handleUpdateMessMenu = async (id, data) => {
     await api.updateMessMenu(id, data);
@@ -333,6 +339,7 @@ export default function App() {
             residents={residents}
             onCreateVisitor={handleCreateVisitor}
             onCheckoutVisitor={handleCheckoutVisitor}
+            onDeleteVisitor={handleDeleteVisitor}
           />
         )}
 

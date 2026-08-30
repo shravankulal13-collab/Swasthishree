@@ -67,6 +67,11 @@ async function runTests() {
   const newVis = await visRes.json();
   console.log('✅ 5. Logged Visitor:', newVis.visitor_name, '| Status:', newVis.status);
 
+  // 5b. Delete Visitor Test
+  const delVisRes = await fetch(`${baseURL}/visitors/${newVis.id}`, { method: 'DELETE' });
+  const delVisData = await delVisRes.json();
+  console.log('✅ 5b. Deleted Visitor:', delVisData);
+
   // 6. Verify Dashboard Metrics dynamically updated
   const updatedStatsRes = await fetch(`${baseURL}/stats`);
   const updatedStats = await updatedStatsRes.json();

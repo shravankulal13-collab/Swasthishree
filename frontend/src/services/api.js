@@ -173,6 +173,15 @@ export const api = {
     return res.json();
   },
 
+  async deleteVisitor(id) {
+    const res = await fetch(`${BASE_URL}/visitors/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || 'Failed to delete visitor log');
+    }
+    return res.json();
+  },
+
   // Mess Menu & Timings
   async getMessMenu() {
     const res = await fetch(`${BASE_URL}/mess-menu`);

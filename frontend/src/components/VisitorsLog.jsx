@@ -6,6 +6,7 @@ import {
   Phone,
   LogOut,
   ShieldCheck,
+  Trash2,
   X
 } from 'lucide-react';
 
@@ -13,9 +14,11 @@ export default function VisitorsLog({
   visitors = [],
   residents = [],
   onCreateVisitor,
-  onCheckoutVisitor
+  onCheckoutVisitor,
+  onDeleteVisitor
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingVisitor, setDeletingVisitor] = useState(null);
   const [newVisitor, setNewVisitor] = useState({
     resident_id: '',
     resident_name: '',
@@ -115,20 +118,30 @@ export default function VisitorsLog({
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    {v.status === 'Checked In' && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                      {v.status === 'Checked In' && (
+                        <button
+                          onClick={() => onCheckoutVisitor(v.id)}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: '0.76rem', padding: '4px 8px', color: '#b45309' }}
+                        >
+                          <LogOut size={12} /> Check Out
+                        </button>
+                      )}
+                      {v.status === 'Checked Out' && (
+                        <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                          Departed {v.check_out_time ? new Date(v.check_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      )}
                       <button
-                        onClick={() => onCheckoutVisitor(v.id)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '0.76rem', padding: '4px 8px', color: '#b45309' }}
+                        onClick={() => setDeletingVisitor(v)}
+                        className="btn-icon"
+                        style={{ padding: '5px', color: 'var(--color-ruby)', borderRadius: '6px' }}
+                        title="Delete Visitor Log"
                       >
-                        <LogOut size={12} /> Check Out
+                        <Trash2 size={14} />
                       </button>
-                    )}
-                    {v.status === 'Checked Out' && (
-                      <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                        Departed {v.check_out_time ? new Date(v.check_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </span>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -232,6 +245,43 @@ export default function VisitorsLog({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Visitor Confirmation Modal */}
+      {deletingVisitor && (
+        <div className="modal-overlay" onClick={() => setDeletingVisitor(null)}>
+          <div className="modal-content" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--color-ruby)' }}>Delete Visitor Entry?</h3>
+              <button onClick={() => setDeletingVisitor(null)} className="btn-icon">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete the visitor entry for <strong>{deletingVisitor.visitor_name}</strong> (Visiting {deletingVisitor.resident_name || 'Resident'})?
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" onClick={() => setDeletingVisitor(null)} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (onDeleteVisitor) {
+                    await onDeleteVisitor(deletingVisitor.id);
+                  }
+                  setDeletingVisitor(null);
+                }}
+                className="btn btn-ruby"
+              >
+                <Trash2 size={14} />
+                <span>Delete Entry</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
