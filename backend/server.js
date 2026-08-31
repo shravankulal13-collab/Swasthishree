@@ -209,16 +209,18 @@ async function syncRoomOccupancy(roomId, roomNumber) {
 // ==============================================================================
 const ADMIN_ACCOUNTS = [
   {
-    username: 'swasthishree_mangalore',
+    username: 'swasthishree_admin',
+    aliases: ['swasthishree_mangalore', 'hostel_admin'],
     password: 'Swasthi@24',
     name: 'Swasthishree Admin',
-    role: 'Admin'
+    role: 'Hostel Admin'
   },
   {
-    username: 'skchinnu',
+    username: 'master_admin',
+    aliases: ['admin', 'skchinnu', 'developer_admin'],
     password: 'Manipal@0818',
-    name: 'SK Chinnu',
-    role: 'Admin'
+    name: 'Master Admin',
+    role: 'Master Admin'
   }
 ];
 
@@ -226,32 +228,33 @@ app.post('/api/auth/login', (req, res) => {
   try {
     const { username, password } = req.body || {};
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+      return res.status(400).json({ error: 'Please enter both username and password' });
     }
 
     const cleanUsername = String(username).trim().toLowerCase();
     const cleanPassword = String(password).trim();
 
-    const matchedAdmin = ADMIN_ACCOUNTS.find(
-      acc => acc.username.toLowerCase() === cleanUsername && acc.password === cleanPassword
+    const matchedAccount = ADMIN_ACCOUNTS.find(
+      acc => (acc.username.toLowerCase() === cleanUsername || (acc.aliases && acc.aliases.includes(cleanUsername))) &&
+             acc.password === cleanPassword
     );
 
-    if (!matchedAdmin) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+    if (!matchedAccount) {
+      return res.status(401).json({ error: 'Invalid username or password. Access denied.' });
     }
 
-    const token = `auth-${Buffer.from(`${matchedAdmin.username}:${Date.now()}`).toString('base64')}`;
+    const token = `auth-${Buffer.from(`${matchedAccount.username}:${Date.now()}`).toString('base64')}`;
     const userPayload = {
-      username: matchedAdmin.username,
-      name: matchedAdmin.name,
-      role: matchedAdmin.role,
+      username: matchedAccount.username,
+      name: matchedAccount.name,
+      role: matchedAccount.role,
       token,
       loggedInAt: new Date().toISOString()
     };
 
     res.json({
       success: true,
-      message: `Welcome back, ${matchedAdmin.name}!`,
+      message: `Welcome back, ${matchedAccount.name}!`,
       user: userPayload
     });
   } catch (err) {

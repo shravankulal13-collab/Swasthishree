@@ -12,6 +12,7 @@ import ReceiptModal from './components/ReceiptModal';
 import VisitorsLog from './components/VisitorsLog';
 import MessMenu from './components/MessMenu';
 import NoticesBoard from './components/NoticesBoard';
+import SupabaseSettingsModal from './components/SupabaseSettingsModal';
 import { Building2 } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 
