@@ -3,9 +3,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
+
+if (!process.env.CLOUDFLARE_WORKER) {
+  require('dotenv').config();
+}
 
 const {
   supabase,
@@ -26,26 +27,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
 
 // Static uploads directory
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-app.use('/uploads', express.static(uploadsDir));
-
-// Multer setup for resident photo uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    const cleanName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '_');
-    cb(null, `${Date.now()}_${cleanName}${ext}`);
+// Cloudflare Workers compatible upload handling.
+// Files are kept in memory and uploaded directly to Supabase Storage.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
   }
 });
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }
-});
-
 function generateReceiptNumber() {
   const year = new Date().getFullYear();
   const rand = Math.floor(1000 + Math.random() * 9000);
@@ -1122,16 +1111,7 @@ app.delete('/api/notices/:id', async (req, res) => {
 // ==============================================================================
 // 9. SERVE FRONTEND (Single-port deployment for Replit / Render / VPS)
 // ==============================================================================
-const frontendDistPath = path.join(__dirname, '../frontend/dist');
-if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
-  app.use((req, res, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
-      return res.sendFile(path.join(frontendDistPath, 'index.html'));
-    }
-    next();
-  });
-}
+
 
 // Central 404 & Error Handler
 app.use((req, res, next) => {

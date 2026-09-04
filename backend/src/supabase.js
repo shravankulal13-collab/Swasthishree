@@ -1,6 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
-const fs = require('fs');
 
 // Clean Initial Local Mock Store
 let localMockStore = {
@@ -256,10 +255,17 @@ async function uploadResidentPhoto(file) {
   if (isSupabaseConfigured && supabase) {
     try {
       const fileExt = path.extname(file.originalname) || '.jpg';
-      const fileName = `resident_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${fileExt}`;
+
+      const fileName =
+        `resident_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 8)}${fileExt}`;
+
       const filePath = `avatars/${fileName}`;
 
-      const fileBuffer = fs.readFileSync(file.path);
+      // Multer memoryStorage provides the file as a Buffer.
+      const fileBuffer = file.buffer;
+
       const { data, error } = await supabase.storage
         .from('resident-photos')
         .upload(filePath, fileBuffer, {
@@ -267,20 +273,31 @@ async function uploadResidentPhoto(file) {
           upsert: true
         });
 
-      if (!error && data) {
-        const { data: publicUrlData } = supabase.storage
-          .from('resident-photos')
-          .getPublicUrl(filePath);
+      if (error) {
+        throw error;
+      }
 
-        try { fs.unlinkSync(file.path); } catch (e) {}
+      if (data) {
+        const { data: publicUrlData } =
+          supabase.storage
+            .from('resident-photos')
+            .getPublicUrl(filePath);
+
         return publicUrlData.publicUrl;
       }
+
+      return null;
     } catch (err) {
-      console.warn('⚠️ Supabase Storage upload error, falling back to local static URL:', err.message);
+      console.error(
+        '⚠️ Supabase Storage upload error:',
+        err.message
+      );
+
+      return null;
     }
   }
 
-  return `/uploads/${file.filename}`;
+  return null;
 }
 
 module.exports = {
