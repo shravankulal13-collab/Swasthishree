@@ -1,10 +1,9 @@
 import { handleAsNodeRequest } from "cloudflare:node";
 import { env } from "cloudflare:workers";
 
-// Make Cloudflare secrets available to the existing Express/Supabase code
-// BEFORE the backend is imported.
 process.env.CLOUDFLARE_WORKER = "1";
 
+// Pass Cloudflare secrets into process.env BEFORE loading Express/Supabase.
 if (env.SUPABASE_URL) {
   process.env.SUPABASE_URL = env.SUPABASE_URL;
 }
@@ -17,7 +16,7 @@ if (env.SUPABASE_ANON_KEY) {
   process.env.SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
 }
 
-// IMPORTANT: import backend only AFTER the environment variables are ready.
+// IMPORTANT: load backend only AFTER environment variables are available.
 await import("../backend/server.js");
 
 export default {

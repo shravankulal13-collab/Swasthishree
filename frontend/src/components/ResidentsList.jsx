@@ -150,7 +150,7 @@ export default function ResidentsList({
                 whiteSpace: 'nowrap'
               }}
             >
-              🔴 Unpaid ({currentMonthShort})
+              Unpaid ({currentMonthShort})
             </button>
 
             <button
@@ -168,7 +168,7 @@ export default function ResidentsList({
                 whiteSpace: 'nowrap'
               }}
             >
-              🟢 Paid ({currentMonthShort})
+              Paid ({currentMonthShort})
             </button>
           </div>
 
@@ -235,7 +235,7 @@ export default function ResidentsList({
         <div className="responsive-cards-grid">
           {filteredResidents.map(res => {
             const fatherName = res.father_name || res.guardian_name;
-            const depositAmt = res.deposit !== undefined ? res.deposit : (res.security_deposit || 10000);
+            const depositAmt = res.deposit !== undefined && res.deposit !== '' ? res.deposit : (res.security_deposit || 0);
 
             return (
               <div key={res.id} className="warm-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -249,16 +249,16 @@ export default function ResidentsList({
                       height: '60px',
                       borderRadius: '14px',
                       objectFit: 'cover',
-                      border: '2px solid #fed7aa',
+                      border: '2px solid var(--border-color)',
                       flexShrink: 0
                     }}
                   />
-                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {res.name}
                       </h3>
-                      <span className={`badge badge-${res.status === 'Active' ? 'active' : 'pending'}`} style={{ flexShrink: 0 }}>
+                      <span className={`badge badge-${res.status === 'Active' ? 'active' : (res.status === 'Notice Period' ? 'pending' : 'full')}`}>
                         {res.status}
                       </span>
                     </div>
@@ -267,34 +267,23 @@ export default function ResidentsList({
                       <span style={{
                         background: '#ffedd5',
                         color: '#c2410c',
-                        padding: '2px 7px',
+                        padding: '2px 8px',
                         borderRadius: '6px',
-                        fontSize: '0.74rem',
-                        fontWeight: 800
+                        fontWeight: 800,
+                        fontSize: '0.78rem'
                       }}>
                         Room {res.room_number || 'Unassigned'}
                       </span>
                       {res.agent_name && (
-                        <span style={{
-                          background: '#f1f5f9',
-                          color: '#475569',
-                          padding: '2px 6px',
-                          borderRadius: '6px',
-                          fontSize: '0.7rem',
-                          fontWeight: 700
-                        }}>
-                          Agent: {res.agent_name}
+                        <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                          Ref: {res.agent_name}
                         </span>
                       )}
-                    </div>
-
-                    <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      Joined: {res.joining_date || res.admission_date || 'N/A'}
                     </div>
                   </div>
                 </div>
 
-                {/* Details Box */}
+                {/* Key Details Summary */}
                 <div style={{
                   background: 'var(--bg-input)',
                   borderRadius: 'var(--radius-md)',
@@ -319,7 +308,7 @@ export default function ResidentsList({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>{currentMonthShort} Fee Status:</span>
                     <span className={`badge badge-${isResidentPaidForCurrentMonth(res) ? 'paid' : 'overdue'}`} style={{ fontSize: '0.72rem' }}>
-                      {isResidentPaidForCurrentMonth(res) ? '✓ Paid' : '🔴 Unpaid'}
+                      {isResidentPaidForCurrentMonth(res) ? 'Paid' : 'Unpaid'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -475,7 +464,7 @@ export default function ResidentsList({
                       </td>
                       <td>
                         <span className={`badge badge-${isPaid ? 'paid' : 'overdue'}`}>
-                          {isPaid ? '✓ Paid' : '🔴 Unpaid'}
+                          {isPaid ? 'Paid' : 'Unpaid'}
                         </span>
                       </td>
                       <td>

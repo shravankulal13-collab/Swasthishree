@@ -55,7 +55,7 @@ export default function RoomsView({
     floor: 1,
     total_beds: 2,
     room_type: '2 Sharing',
-    monthly_rent: 7500,
+    monthly_rent: '',
     amenities: ['Attached Washroom', 'High-Speed Wi-Fi', 'Personal Wardrobe', 'Study Desk & Chair'],
     customAmenityInput: ''
   });
@@ -125,7 +125,7 @@ export default function RoomsView({
       floor: 1,
       total_beds: 2,
       room_type: '2 Sharing',
-      monthly_rent: 7500,
+      monthly_rent: '',
       amenities: ['Attached Washroom', 'High-Speed Wi-Fi', 'Personal Wardrobe', 'Study Desk & Chair'],
       customAmenityInput: ''
     });
@@ -347,7 +347,7 @@ export default function RoomsView({
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <CheckCircle2 size={22} />
+            <Users size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>
@@ -709,7 +709,7 @@ export default function RoomsView({
                           color: 'var(--text-secondary)'
                         }}
                       >
-                        ✓ {amenity}
+                        {amenity}
                       </span>
                     ))}
                     {roomAmenities.length > 3 && (
@@ -877,7 +877,7 @@ export default function RoomsView({
                         required
                         min={0}
                         step={100}
-                        placeholder="e.g. 7500"
+                        placeholder="Monthly rent"
                         value={formData.monthly_rent}
                         onChange={e => setFormData({ ...formData, monthly_rent: e.target.value })}
                         className="form-input"
@@ -916,7 +916,7 @@ export default function RoomsView({
                             transition: 'var(--transition)'
                           }}
                         >
-                          {isSelected ? `✓ ${amenity}` : `+ ${amenity}`}
+                          {isSelected ? amenity : `+ ${amenity}`}
                         </button>
                       );
                     })}
@@ -1115,7 +1115,7 @@ export default function RoomsView({
                             transition: 'var(--transition)'
                           }}
                         >
-                          {isSelected ? `✓ ${amenity}` : `+ ${amenity}`}
+                          {isSelected ? amenity : `+ ${amenity}`}
                         </button>
                       );
                     })}

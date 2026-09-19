@@ -116,10 +116,10 @@ export default function App() {
   const handleSaveResident = async (formDataOrJson, id) => {
     if (id) {
       await api.updateResident(id, formDataOrJson);
-      showToast('✅ Resident profile updated');
+      showToast('Resident profile updated');
     } else {
       await api.createResident(formDataOrJson);
-      showToast('✅ New resident registered');
+      showToast('New resident registered');
     }
     await loadAllData();
   };
@@ -135,13 +135,13 @@ export default function App() {
   // Handlers for Rooms
   const handleCreateRoom = async (roomData) => {
     await api.createRoom(roomData);
-    showToast(`✅ Room ${roomData.room_number} created`);
+    showToast(`Room ${roomData.room_number} created`);
     await loadAllData();
   };
 
   const handleUpdateRoom = async (id, roomData) => {
     await api.updateRoom(id, roomData);
-    showToast(`✅ Room updated`);
+    showToast('Room updated');
     await loadAllData();
   };
 
@@ -161,7 +161,7 @@ export default function App() {
 
   const handleUpdatePayment = async (id, paymentData) => {
     await api.updatePayment(id, paymentData);
-    showToast(`Payment updated`);
+    showToast('Payment updated');
     await loadAllData();
   };
 
@@ -181,7 +181,7 @@ export default function App() {
   // Handlers for Visitors
   const handleCreateVisitor = async (data) => {
     await api.createVisitor(data);
-    showToast('✅ Guest checked in');
+    showToast('Guest checked in');
     await loadAllData();
   };
 
@@ -213,7 +213,7 @@ export default function App() {
   // Handlers for Notices
   const handleCreateNotice = async (data) => {
     await api.createNotice(data);
-    showToast('📢 Notice broadcasted');
+    showToast('Notice broadcasted');
     await loadAllData();
   };
 

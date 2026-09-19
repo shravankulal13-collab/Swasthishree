@@ -280,7 +280,7 @@ export default function DashboardOverview({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
           <div style={{ background: '#ffffff', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid #bbf7d0' }}>
-            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>✓ Paid Members</div>
+            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>Paid Members</div>
             <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#15803d', marginTop: '2px' }}>
               {paidResidents.length} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Residents</span>
             </div>
@@ -288,7 +288,7 @@ export default function DashboardOverview({
           </div>
 
           <div style={{ background: '#ffffff', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca' }}>
-            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>⚠️ Unpaid / Due</div>
+            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>Unpaid / Due</div>
             <div style={{ fontSize: '1.4rem', fontWeight: 900, color: unpaidResidents.length > 0 ? '#b91c1c' : '#15803d', marginTop: '2px' }}>
               {unpaidResidents.length} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Residents</span>
             </div>

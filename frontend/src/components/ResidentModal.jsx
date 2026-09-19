@@ -13,8 +13,6 @@ import {
   UserCheck,
   FileText,
   BedDouble,
-  CheckCircle2,
-  AlertTriangle,
   Info
 } from 'lucide-react';
 
@@ -33,13 +31,13 @@ export default function ResidentModal({
     parent_phone: '',
     joining_date: new Date().toISOString().split('T')[0],
     agent_name: '',
-    deposit: 10000,
+    deposit: '',
     joining_payment_remarks: '',
     room_id: '',
     room_number: '',
-    monthly_rent: 7500,
+    monthly_rent: '',
     email: '',
-    blood_group: 'B+',
+    blood_group: '',
     college_or_work: '',
     status: 'Active',
     photo_url: '',
@@ -66,13 +64,13 @@ export default function ResidentModal({
         parent_phone: residentToEdit.parent_phone || residentToEdit.guardian_phone || '',
         joining_date: residentToEdit.joining_date || residentToEdit.admission_date || new Date().toISOString().split('T')[0],
         agent_name: residentToEdit.agent_name || '',
-        deposit: residentToEdit.deposit !== undefined ? residentToEdit.deposit : (residentToEdit.security_deposit || 10000),
+        deposit: residentToEdit.deposit !== undefined && residentToEdit.deposit !== null ? residentToEdit.deposit : (residentToEdit.security_deposit || ''),
         joining_payment_remarks: residentToEdit.joining_payment_remarks || residentToEdit.notes || '',
         room_id: matchedRoom ? matchedRoom.id : (residentToEdit.room_id || ''),
         room_number: matchedRoom ? matchedRoom.room_number : (residentToEdit.room_number || ''),
-        monthly_rent: residentToEdit.monthly_rent !== undefined ? residentToEdit.monthly_rent : (matchedRoom ? matchedRoom.monthly_rent : 7500),
+        monthly_rent: residentToEdit.monthly_rent !== undefined && residentToEdit.monthly_rent !== null ? residentToEdit.monthly_rent : (matchedRoom ? matchedRoom.monthly_rent : ''),
         email: residentToEdit.email || '',
-        blood_group: residentToEdit.blood_group || 'B+',
+        blood_group: residentToEdit.blood_group || '',
         college_or_work: residentToEdit.college_or_work || '',
         status: residentToEdit.status || 'Active',
         photo_url: residentToEdit.photo_url || '',
@@ -93,13 +91,13 @@ export default function ResidentModal({
         parent_phone: '',
         joining_date: new Date().toISOString().split('T')[0],
         agent_name: '',
-        deposit: 10000,
+        deposit: '',
         joining_payment_remarks: '',
         room_id: matchedRoom ? matchedRoom.id : (residentToEdit.room_id || ''),
         room_number: matchedRoom ? matchedRoom.room_number : (residentToEdit.room_number || ''),
-        monthly_rent: matchedRoom ? matchedRoom.monthly_rent : (residentToEdit.monthly_rent || 7500),
+        monthly_rent: matchedRoom ? matchedRoom.monthly_rent : (residentToEdit.monthly_rent || ''),
         email: '',
-        blood_group: 'B+',
+        blood_group: '',
         college_or_work: '',
         status: 'Active',
         photo_url: '',
@@ -114,13 +112,13 @@ export default function ResidentModal({
         parent_phone: '',
         joining_date: new Date().toISOString().split('T')[0],
         agent_name: '',
-        deposit: 10000,
+        deposit: '',
         joining_payment_remarks: '',
         room_id: '',
         room_number: '',
-        monthly_rent: rooms.length > 0 ? (rooms[0].monthly_rent || 7500) : 7500,
+        monthly_rent: '',
         email: '',
-        blood_group: 'B+',
+        blood_group: '',
         college_or_work: '',
         status: 'Active',
         photo_url: '',
@@ -145,7 +143,7 @@ export default function ResidentModal({
 
   const handleRoomChange = (selectedVal) => {
     if (!selectedVal) {
-      setFormData(prev => ({ ...prev, room_id: '', room_number: '' }));
+      setFormData(prev => ({ ...prev, room_id: '', room_number: '', monthly_rent: '' }));
       return;
     }
 
@@ -155,7 +153,7 @@ export default function ResidentModal({
         ...prev,
         room_id: roomObj.id,
         room_number: roomObj.room_number,
-        monthly_rent: roomObj.monthly_rent || prev.monthly_rent
+        monthly_rent: roomObj.monthly_rent !== undefined ? roomObj.monthly_rent : prev.monthly_rent
       }));
     } else {
       setFormData(prev => ({
@@ -185,6 +183,9 @@ export default function ResidentModal({
       setIsSubmitting(true);
       setErrorMsg('');
 
+      const depositNum = formData.deposit !== '' && formData.deposit !== null ? Number(formData.deposit) : 0;
+      const rentNum = formData.monthly_rent !== '' && formData.monthly_rent !== null ? Number(formData.monthly_rent) : 0;
+
       const submissionPayload = {
         ...formData,
         room_id: selectedRoom ? selectedRoom.id : (formData.room_id || null),
@@ -192,9 +193,9 @@ export default function ResidentModal({
         guardian_name: formData.father_name,
         guardian_phone: formData.parent_phone,
         admission_date: formData.joining_date,
-        security_deposit: Number(formData.deposit),
-        deposit: Number(formData.deposit),
-        monthly_rent: Number(formData.monthly_rent),
+        security_deposit: depositNum,
+        deposit: depositNum,
+        monthly_rent: rentNum,
         notes: formData.joining_payment_remarks || formData.notes
       };
 
@@ -241,7 +242,7 @@ export default function ResidentModal({
               {residentToEdit ? 'Edit Resident Profile' : 'Resident Onboarding (ದಾಖಲಾತಿ)'}
             </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Register resident details, assign room and bed slot, parent contacts, and joining payment.
+              Register resident details, room allocation, parents contact, and payment details.
             </p>
           </div>
           <button onClick={onClose} className="btn-icon">
@@ -254,7 +255,7 @@ export default function ResidentModal({
           <div className="modal-body">
             {errorMsg && (
               <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: '#ffe4e6', color: '#be123c', marginBottom: '16px', fontSize: '0.84rem', fontWeight: 600 }}>
-                ⚠️ {errorMsg}
+                {errorMsg}
               </div>
             )}
 
@@ -273,7 +274,7 @@ export default function ResidentModal({
                     <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
                   </label>
                   <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    {selectedFile ? selectedFile.name : 'Attach passport / selfie photo'}
+                    {selectedFile ? selectedFile.name : 'Optional photo'}
                   </span>
                 </div>
               </div>
@@ -290,7 +291,7 @@ export default function ResidentModal({
                 <input
                   type="text"
                   required
-                  placeholder="Enter full name"
+                  placeholder="Full name"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="form-input"
@@ -302,7 +303,7 @@ export default function ResidentModal({
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. +91 98765 43210"
+                  placeholder="Phone number"
                   value={formData.phone}
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
                   className="form-input"
@@ -321,7 +322,7 @@ export default function ResidentModal({
                 <input
                   type="text"
                   required
-                  placeholder="Enter father's name"
+                  placeholder="Father's name"
                   value={formData.father_name}
                   onChange={e => setFormData({ ...formData, father_name: e.target.value })}
                   className="form-input"
@@ -333,7 +334,7 @@ export default function ResidentModal({
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. +91 98765 43219"
+                  placeholder="Parent's phone number"
                   value={formData.parent_phone}
                   onChange={e => setFormData({ ...formData, parent_phone: e.target.value })}
                   className="form-input"
@@ -357,7 +358,7 @@ export default function ResidentModal({
                 <label className="form-label">Agent Name / Reference</label>
                 <input
                   type="text"
-                  placeholder="e.g. Nagaraj / Direct"
+                  placeholder="Agent name or reference (optional)"
                   value={formData.agent_name}
                   onChange={e => setFormData({ ...formData, agent_name: e.target.value })}
                   className="form-input"
@@ -401,7 +402,7 @@ export default function ResidentModal({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 101"
+                    placeholder="Room number"
                     value={formData.room_number}
                     onChange={e => handleRoomChange(e.target.value)}
                     className="form-input"
@@ -441,7 +442,7 @@ export default function ResidentModal({
                   </div>
 
                   <span className={`badge badge-${isRoomFull ? 'full' : 'available'}`}>
-                    {isRoomFull ? '⚠️ Full Capacity' : `✓ ${vacantBeds} of ${totalBeds} Beds Vacant`}
+                    {isRoomFull ? 'Full Capacity' : `${vacantBeds} of ${totalBeds} beds available`}
                   </span>
                 </div>
               )}
@@ -462,11 +463,10 @@ export default function ResidentModal({
 
               <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label" style={{ color: '#7c2d12' }}>Joining Deposit (₹) *</label>
+                  <label className="form-label" style={{ color: '#7c2d12' }}>Joining Deposit (₹)</label>
                   <input
                     type="number"
-                    required
-                    placeholder="e.g. 10000"
+                    placeholder="Security deposit amount"
                     value={formData.deposit}
                     onChange={e => setFormData({ ...formData, deposit: e.target.value })}
                     className="form-input"
@@ -479,6 +479,7 @@ export default function ResidentModal({
                   <input
                     type="number"
                     required
+                    placeholder="Monthly rent"
                     value={formData.monthly_rent}
                     onChange={e => setFormData({ ...formData, monthly_rent: e.target.value })}
                     className="form-input"
@@ -491,7 +492,7 @@ export default function ResidentModal({
                 <label className="form-label" style={{ color: '#7c2d12' }}>Other Payment Details / Advance Remarks</label>
                 <textarea
                   rows="2"
-                  placeholder="Enter initial advance payment details, maintenance charges, receipt numbers, or special notes..."
+                  placeholder="Advance payment details, receipt number or remarks (optional)..."
                   value={formData.joining_payment_remarks}
                   onChange={e => setFormData({ ...formData, joining_payment_remarks: e.target.value })}
                   className="form-textarea"
@@ -526,6 +527,7 @@ export default function ResidentModal({
                   onChange={e => setFormData({ ...formData, blood_group: e.target.value })}
                   className="form-select"
                 >
+                  <option value="">Select Blood Group (Optional)</option>
                   {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
                     <option key={bg} value={bg}>{bg}</option>
                   ))}
@@ -538,7 +540,7 @@ export default function ResidentModal({
                 <label className="form-label">Workplace / College</label>
                 <input
                   type="text"
-                  placeholder="e.g. Infosys Ltd / Canara College"
+                  placeholder="Workplace / College (optional)"
                   value={formData.college_or_work}
                   onChange={e => setFormData({ ...formData, college_or_work: e.target.value })}
                   className="form-input"
@@ -549,7 +551,7 @@ export default function ResidentModal({
                 <label className="form-label">Email Address</label>
                 <input
                   type="email"
-                  placeholder="resident@example.com"
+                  placeholder="Email address (optional)"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                   className="form-input"

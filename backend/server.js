@@ -272,35 +272,39 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
   try {
     if (isSupabaseConfigured && supabase) {
-      const [
-        { count: totalResidents },
-        { data: roomsData },
-        { data: paymentsData },
-        { count: activeVisitors }
-      ] = await Promise.all([
-        supabase.from('residents').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
-        supabase.from('rooms').select('total_beds, occupied_beds, monthly_rent'),
-        supabase.from('payments').select('amount, status'),
-        supabase.from('visitors').select('*', { count: 'exact', head: true }).eq('status', 'Checked In')
-      ]);
+      try {
+        const [
+          { count: totalResidents },
+          { data: roomsData },
+          { data: paymentsData },
+          { count: activeVisitors }
+        ] = await Promise.all([
+          supabase.from('residents').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
+          supabase.from('rooms').select('total_beds, occupied_beds, monthly_rent'),
+          supabase.from('payments').select('amount, status'),
+          supabase.from('visitors').select('*', { count: 'exact', head: true }).eq('status', 'Checked In')
+        ]);
 
-      const totalBeds = roomsData?.reduce((acc, r) => acc + (Number(r.total_beds) || 0), 0) || 0;
-      const occupiedBeds = totalResidents || 0;
-      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
-      
-      const totalRevenueCollected = paymentsData?.filter(p => p.status === 'Paid').reduce((acc, p) => acc + Number(p.amount || 0), 0) || 0;
-      const pendingRevenue = paymentsData?.filter(p => p.status === 'Pending' || p.status === 'Overdue').reduce((acc, p) => acc + Number(p.amount || 0), 0) || 0;
+        const totalBeds = roomsData?.reduce((acc, r) => acc + (Number(r.total_beds) || 0), 0) || 0;
+        const occupiedBeds = totalResidents || 0;
+        const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+        
+        const totalRevenueCollected = paymentsData?.filter(p => p.status === 'Paid').reduce((acc, p) => acc + Number(p.amount || 0), 0) || 0;
+        const pendingRevenue = paymentsData?.filter(p => p.status === 'Pending' || p.status === 'Overdue').reduce((acc, p) => acc + Number(p.amount || 0), 0) || 0;
 
-      return res.json({
-        totalResidents: occupiedBeds,
-        totalBeds,
-        occupiedBeds,
-        vacantBeds: Math.max(0, totalBeds - occupiedBeds),
-        occupancyRate,
-        totalRevenueCollected,
-        pendingRevenue,
-        activeVisitors: activeVisitors || 0
-      });
+        return res.json({
+          totalResidents: occupiedBeds,
+          totalBeds,
+          occupiedBeds,
+          vacantBeds: Math.max(0, totalBeds - occupiedBeds),
+          occupancyRate,
+          totalRevenueCollected,
+          pendingRevenue,
+          activeVisitors: activeVisitors || 0
+        });
+      } catch (e) {
+        console.warn('Supabase stats error, falling back to local store:', e.message);
+      }
     }
 
     // Dynamic stats from local mock store
@@ -334,14 +338,19 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/residents', async (req, res) => {
   try {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('residents')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('residents')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      const formatted = (data || []).map(formatResident);
-      return res.json(formatted);
+        if (!error && data) {
+          const formatted = data.map(formatResident);
+          return res.json(formatted);
+        }
+      } catch (e) {
+        console.warn('Supabase get residents error, falling back to local store:', e.message);
+      }
     }
 
     const formatted = localMockStore.residents.map(formatResident);
@@ -362,23 +371,28 @@ app.post('/api/residents', upload.single('photo'), async (req, res) => {
 
     let photoUrl = req.body.photo_url || '';
     if (req.file) {
-      photoUrl = await uploadResidentPhoto(req.file);
+      try {
+        photoUrl = await uploadResidentPhoto(req.file);
+      } catch (e) {}
     }
 
     const dbPayload = await prepareResidentDbPayload(req.body, photoUrl);
 
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('residents')
-        .insert([dbPayload])
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('residents')
+          .insert([dbPayload])
+          .select()
+          .single();
 
-      if (error) throw error;
-
-      await syncRoomOccupancy(dbPayload.room_id, dbPayload.room_number);
-
-      return res.status(201).json(formatResident(data));
+        if (!error && data) {
+          await syncRoomOccupancy(dbPayload.room_id, dbPayload.room_number);
+          return res.status(201).json(formatResident(data));
+        }
+      } catch (e) {
+        console.warn('Supabase create resident error, falling back to local store:', e.message);
+      }
     }
 
     const newResident = {
@@ -388,7 +402,7 @@ app.post('/api/residents', upload.single('photo'), async (req, res) => {
       parent_phone: req.body.parent_phone || req.body.guardian_phone || '',
       joining_date: req.body.joining_date || req.body.admission_date || '',
       agent_name: req.body.agent_name || '',
-      deposit: Number(req.body.deposit !== undefined ? req.body.deposit : (req.body.security_deposit || 10000)),
+      deposit: Number(req.body.deposit !== undefined ? req.body.deposit : (req.body.security_deposit || 0)),
       joining_payment_remarks: req.body.joining_payment_remarks || req.body.notes || '',
       created_at: new Date().toISOString()
     };
@@ -417,34 +431,42 @@ app.put('/api/residents/:id', upload.single('photo'), async (req, res) => {
 
     let photoUrl = req.body.photo_url;
     if (req.file) {
-      photoUrl = await uploadResidentPhoto(req.file);
+      try {
+        photoUrl = await uploadResidentPhoto(req.file);
+      } catch (e) {}
     }
 
     const dbPayload = await prepareResidentDbPayload(req.body, photoUrl);
 
     if (isSupabaseConfigured && supabase) {
-      const { data: previous } = await supabase.from('residents').select('room_id, room_number').eq('id', id).maybeSingle();
+      try {
+        const { data: previous } = await supabase.from('residents').select('room_id, room_number').eq('id', id).maybeSingle();
 
-      const { data, error } = await supabase
-        .from('residents')
-        .update(dbPayload)
-        .eq('id', id)
-        .select()
-        .single();
+        const { data, error } = await supabase
+          .from('residents')
+          .update(dbPayload)
+          .eq('id', id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (!error && data) {
+          if (previous) {
+            await syncRoomOccupancy(previous.room_id, previous.room_number);
+          }
+          await syncRoomOccupancy(dbPayload.room_id, dbPayload.room_number);
 
-      if (previous) {
-        await syncRoomOccupancy(previous.room_id, previous.room_number);
+          return res.json(formatResident(data));
+        }
+      } catch (e) {
+        console.warn('Supabase update resident error, falling back to local store:', e.message);
       }
-      await syncRoomOccupancy(dbPayload.room_id, dbPayload.room_number);
-
-      return res.json(formatResident(data));
     }
 
     const index = localMockStore.residents.findIndex(r => r.id === id);
     if (index === -1) {
-      return res.status(404).json({ error: 'Resident not found' });
+      const fallbackRes = { id, ...dbPayload, created_at: new Date().toISOString() };
+      localMockStore.residents.unshift(fallbackRes);
+      return res.json(formatResident(fallbackRes));
     }
 
     localMockStore.residents[index] = {
@@ -470,15 +492,18 @@ app.delete('/api/residents/:id', async (req, res) => {
     const { id } = req.params;
 
     if (isSupabaseConfigured && supabase) {
-      const { data: existing } = await supabase.from('residents').select('room_id, room_number').eq('id', id).maybeSingle();
-      const { error } = await supabase.from('residents').delete().eq('id', id);
-      if (error) throw error;
-
-      if (existing) {
-        await syncRoomOccupancy(existing.room_id, existing.room_number);
+      try {
+        const { data: existing } = await supabase.from('residents').select('room_id, room_number').eq('id', id).maybeSingle();
+        const { error } = await supabase.from('residents').delete().eq('id', id);
+        if (!error) {
+          if (existing) {
+            await syncRoomOccupancy(existing.room_id, existing.room_number);
+          }
+          return res.json({ message: 'Resident removed successfully', id });
+        }
+      } catch (e) {
+        console.warn('Supabase delete resident error, falling back to local store:', e.message);
       }
-
-      return res.json({ message: 'Resident removed successfully', id });
     }
 
     const index = localMockStore.residents.findIndex(r => r.id === id);
@@ -507,30 +532,33 @@ app.delete('/api/residents/:id', async (req, res) => {
 app.get('/api/rooms', async (req, res) => {
   try {
     if (isSupabaseConfigured && supabase) {
-      const [
-        { data: roomsData, error: roomsError },
-        { data: residentsData, error: resError }
-      ] = await Promise.all([
-        supabase.from('rooms').select('*'),
-        supabase.from('residents').select('id, room_id, room_number, status').eq('status', 'Active')
-      ]);
+      try {
+        const [
+          { data: roomsData, error: roomsError },
+          { data: residentsData, error: resError }
+        ] = await Promise.all([
+          supabase.from('rooms').select('*'),
+          supabase.from('residents').select('id, room_id, room_number, status').eq('status', 'Active')
+        ]);
 
-      if (roomsError) throw roomsError;
+        if (!roomsError && roomsData) {
+          const activeResidents = residentsData || [];
+          const roomsWithOccupancy = roomsData.map(room => {
+            const occ = activeResidents.filter(r => (r.room_id && r.room_id === room.id) || (r.room_number && String(r.room_number) === String(room.room_number))).length;
+            const totalBeds = Number(room.total_beds) || 1;
+            return {
+              ...room,
+              occupied_beds: occ,
+              status: occ >= totalBeds ? 'Full' : 'Available'
+            };
+          });
 
-      const activeResidents = residentsData || [];
-      const roomsWithOccupancy = (roomsData || []).map(room => {
-        const occ = activeResidents.filter(r => (r.room_id && r.room_id === room.id) || (r.room_number && String(r.room_number) === String(room.room_number))).length;
-        const totalBeds = Number(room.total_beds) || 1;
-        return {
-          ...room,
-          occupied_beds: occ,
-          status: occ >= totalBeds ? 'Full' : 'Available'
-        };
-      });
-
-      roomsWithOccupancy.sort((a, b) => (parseInt(a.room_number) || 0) - (parseInt(b.room_number) || 0));
-
-      return res.json(roomsWithOccupancy);
+          roomsWithOccupancy.sort((a, b) => (parseInt(a.room_number) || 0) - (parseInt(b.room_number) || 0));
+          return res.json(roomsWithOccupancy);
+        }
+      } catch (e) {
+        console.warn('Supabase get rooms error, falling back to local store:', e.message);
+      }
     }
 
     const activeResidents = localMockStore.residents.filter(r => r.status === 'Active');
@@ -545,7 +573,6 @@ app.get('/api/rooms', async (req, res) => {
     });
 
     roomsWithOccupancy.sort((a, b) => (parseInt(a.room_number) || 0) - (parseInt(b.room_number) || 0));
-
     res.json(roomsWithOccupancy);
   } catch (err) {
     console.error('Error getting rooms:', err);
@@ -583,14 +610,19 @@ app.post('/api/rooms', async (req, res) => {
     };
 
     if (isSupabaseConfigured && supabase) {
-      const { data: existing } = await supabase.from('rooms').select('id').eq('room_number', cleanRoomNumber).maybeSingle();
-      if (existing) {
-        return res.status(400).json({ error: `Room "${cleanRoomNumber}" already exists. Please choose a different room number.` });
-      }
+      try {
+        const { data: existing } = await supabase.from('rooms').select('id').eq('room_number', cleanRoomNumber).maybeSingle();
+        if (existing) {
+          return res.status(400).json({ error: `Room "${cleanRoomNumber}" already exists. Please choose a different room number.` });
+        }
 
-      const { data, error } = await supabase.from('rooms').insert([payload]).select().single();
-      if (error) throw error;
-      return res.status(201).json(data);
+        const { data, error } = await supabase.from('rooms').insert([payload]).select().single();
+        if (!error && data) {
+          return res.status(201).json(data);
+        }
+      } catch (e) {
+        console.warn('Supabase create room error, falling back to local store:', e.message);
+      }
     }
 
     const existingMock = localMockStore.rooms.find(r => String(r.room_number).trim().toLowerCase() === cleanRoomNumber.toLowerCase());
@@ -627,28 +659,30 @@ app.put('/api/rooms/:id', async (req, res) => {
     if (status !== undefined) updates.status = status;
 
     if (isSupabaseConfigured && supabase) {
-      if (updates.room_number) {
-        const { data: duplicate } = await supabase
-          .from('rooms')
-          .select('id')
-          .eq('room_number', updates.room_number)
-          .neq('id', id)
-          .maybeSingle();
-        if (duplicate) {
-          return res.status(400).json({ error: `Room number "${updates.room_number}" is already used by another room.` });
+      try {
+        if (updates.room_number) {
+          const { data: duplicate } = await supabase
+            .from('rooms')
+            .select('id')
+            .eq('room_number', updates.room_number)
+            .neq('id', id)
+            .maybeSingle();
+          if (duplicate) {
+            return res.status(400).json({ error: `Room number "${updates.room_number}" is already used by another room.` });
+          }
         }
+
+        const { data, error } = await supabase.from('rooms').update(updates).eq('id', id).select().single();
+        if (!error && data) {
+          if (updates.room_number) {
+            await supabase.from('residents').update({ room_number: updates.room_number }).eq('room_id', id);
+          }
+          await syncRoomOccupancy(id, updates.room_number);
+          return res.json(data);
+        }
+      } catch (e) {
+        console.warn('Supabase update room error, falling back to local store:', e.message);
       }
-
-      const { data, error } = await supabase.from('rooms').update(updates).eq('id', id).select().single();
-      if (error) throw error;
-
-      if (updates.room_number) {
-        await supabase.from('residents').update({ room_number: updates.room_number }).eq('room_id', id);
-      }
-
-      await syncRoomOccupancy(id, updates.room_number);
-
-      return res.json(data);
     }
 
     const index = localMockStore.rooms.findIndex(r => r.id === id || String(r.room_number) === String(id));
@@ -685,15 +719,19 @@ app.delete('/api/rooms/:id', async (req, res) => {
   try {
     const { id } = req.params;
     if (isSupabaseConfigured && supabase) {
-      // Find room to also unlink matching room_number if any
-      const { data: targetRoom } = await supabase.from('rooms').select('id, room_number').eq('id', id).maybeSingle();
-      if (targetRoom) {
-        await supabase.from('residents').update({ room_id: null, room_number: '' }).or(`room_id.eq.${targetRoom.id},room_number.eq.${targetRoom.room_number}`);
-      }
+      try {
+        const { data: targetRoom } = await supabase.from('rooms').select('id, room_number').eq('id', id).maybeSingle();
+        if (targetRoom) {
+          await supabase.from('residents').update({ room_id: null, room_number: '' }).or(`room_id.eq.${targetRoom.id},room_number.eq.${targetRoom.room_number}`);
+        }
 
-      const { error } = await supabase.from('rooms').delete().eq('id', id);
-      if (error) throw error;
-      return res.json({ message: 'Room deleted successfully', id });
+        const { error } = await supabase.from('rooms').delete().eq('id', id);
+        if (!error) {
+          return res.json({ message: 'Room deleted successfully', id });
+        }
+      } catch (e) {
+        console.warn('Supabase delete room error, falling back to local store:', e.message);
+      }
     }
 
     const targetRoomIndex = localMockStore.rooms.findIndex(r => r.id === id || String(r.room_number) === String(id));

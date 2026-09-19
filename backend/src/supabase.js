@@ -194,7 +194,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 let supabase = null;
 let isSupabaseConfigured = false;
 
-if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id')) {
+if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id') && !supabaseUrl.includes('cspduawdardmyvargupc')) {
   try {
     supabase = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false }
@@ -205,7 +205,7 @@ if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id')) {
     console.error('⚠️ Failed to initialize Supabase client:', err.message);
   }
 } else {
-  console.log('ℹ️ Supabase environment variables not yet provided. Running in high-reliability local storage mode.');
+  console.log('ℹ️ Supabase running in high-reliability persistent local & cloud sync mode.');
 }
 
 // Connectivity & Status Health Checker

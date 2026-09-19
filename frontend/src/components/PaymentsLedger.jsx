@@ -233,7 +233,7 @@ export default function PaymentsLedger({
         <div className="warm-card" style={{ padding: '18px 20px', borderLeft: '4px solid #16a34a' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>
-              ✓ Collected (Paid)
+              Collected (Paid)
             </span>
             <span className="badge badge-paid" style={{ fontSize: '0.72rem' }}>
               {paidResidents.length} Paid
@@ -251,7 +251,7 @@ export default function PaymentsLedger({
         <div className="warm-card" style={{ padding: '18px 20px', borderLeft: '4px solid #dc2626' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>
-              ⚠️ Pending Dues (Unpaid)
+              Pending Dues (Unpaid)
             </span>
             <span className="badge badge-overdue" style={{ fontSize: '0.72rem' }}>
               {unpaidResidents.length} Unpaid
@@ -510,7 +510,7 @@ export default function PaymentsLedger({
                     </td>
                     <td>
                       <span className="badge badge-paid">
-                        ✓ PAID
+                        PAID
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
