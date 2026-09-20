@@ -1,3 +1,5 @@
+import { isDummyPhoto } from '../components/ResidentAvatar';
+
 // Unified API Service with Local Storage Persistence & Fallback for Swasthishree (ಸ್ವಸ್ತಿ ಶ್ರೀ)
 
 export function getBaseUrl() {
@@ -148,6 +150,8 @@ function normalizeResidentObject(input, id) {
 
   const rentVal = Number(obj.monthly_rent || 0);
 
+  const cleanPhoto = isDummyPhoto(obj.photo_url) ? '' : (obj.photo_url || '');
+
   return {
     id: id || obj.id || `res-${Date.now()}`,
     name: String(obj.name || '').trim(),
@@ -170,7 +174,7 @@ function normalizeResidentObject(input, id) {
     status: obj.status || 'Active',
     joining_payment_remarks: obj.joining_payment_remarks || obj.notes || '',
     notes: obj.joining_payment_remarks || obj.notes || '',
-    photo_url: obj.photo_url || '',
+    photo_url: cleanPhoto,
     created_at: obj.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -269,23 +273,37 @@ export const api = {
     const deletedIds = getDeletedIds('swasthishree_deleted_resident_ids');
     let localResidents = getLocal('swasthishree_residents', []);
 
+    // Purge any stored dummy photos from local storage
+    localResidents = localResidents.map(r => ({
+      ...r,
+      photo_url: isDummyPhoto(r.photo_url) ? '' : r.photo_url
+    }));
+    setLocal('swasthishree_residents', localResidents);
+
     try {
       const res = await fetch(`${getBaseUrl()}/residents`);
       if (res.ok) {
         const remoteData = await res.json();
         if (Array.isArray(remoteData)) {
-          // Merge remote with local, excluding deleted IDs
+          // Merge remote with local, excluding deleted IDs and sanitizing dummy photos
           const remoteFiltered = remoteData.filter(r => !deletedIds.has(r.id)).map(r => {
+            const cleanRemotePhoto = isDummyPhoto(r.photo_url) ? '' : r.photo_url;
             const localMatch = localResidents.find(lr => lr.id === r.id);
-            if (localMatch && localMatch.photo_url && !r.photo_url) {
-              return { ...r, photo_url: localMatch.photo_url };
-            }
-            return r;
+            const cleanLocalPhoto = (localMatch && !isDummyPhoto(localMatch.photo_url)) ? localMatch.photo_url : '';
+            return {
+              ...r,
+              photo_url: cleanRemotePhoto || cleanLocalPhoto || ''
+            };
           });
           
           // Combine with any local residents not yet on backend
           const remoteIdSet = new Set(remoteFiltered.map(r => r.id));
-          const unsyncedLocal = localResidents.filter(r => !remoteIdSet.has(r.id) && !deletedIds.has(r.id));
+          const unsyncedLocal = localResidents
+            .filter(r => !remoteIdSet.has(r.id) && !deletedIds.has(r.id))
+            .map(r => ({
+              ...r,
+              photo_url: isDummyPhoto(r.photo_url) ? '' : r.photo_url
+            }));
           
           const combined = [...unsyncedLocal, ...remoteFiltered];
           setLocal('swasthishree_residents', combined);
@@ -297,7 +315,12 @@ export const api = {
     }
 
     // Filter out deleted IDs from local store
-    const filtered = localResidents.filter(r => !deletedIds.has(r.id));
+    const filtered = localResidents
+      .filter(r => !deletedIds.has(r.id))
+      .map(r => ({
+        ...r,
+        photo_url: isDummyPhoto(r.photo_url) ? '' : r.photo_url
+      }));
     setLocal('swasthishree_residents', filtered);
     return filtered;
   },

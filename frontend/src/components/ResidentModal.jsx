@@ -16,7 +16,7 @@ import {
   Info,
   Trash2
 } from 'lucide-react';
-import ResidentAvatar from './ResidentAvatar';
+import ResidentAvatar, { isDummyPhoto } from './ResidentAvatar';
 
 export default function ResidentModal({
   isOpen,
@@ -59,6 +59,8 @@ export default function ResidentModal({
         (residentToEdit.room_number && String(r.room_number) === String(residentToEdit.room_number))
       );
 
+      const validExistingPhoto = isDummyPhoto(residentToEdit.photo_url) ? '' : (residentToEdit.photo_url || '');
+
       setFormData({
         name: residentToEdit.name || '',
         phone: residentToEdit.phone || '',
@@ -75,10 +77,10 @@ export default function ResidentModal({
         blood_group: residentToEdit.blood_group || '',
         college_or_work: residentToEdit.college_or_work || '',
         status: residentToEdit.status || 'Active',
-        photo_url: residentToEdit.photo_url || '',
+        photo_url: validExistingPhoto,
         notes: residentToEdit.notes || ''
       });
-      setPreviewUrl(residentToEdit.photo_url || '');
+      setPreviewUrl(validExistingPhoto);
     } else if (residentToEdit && (residentToEdit.room_id || residentToEdit.room_number)) {
       // Pre-assigned room for new resident onboarding
       const matchedRoom = rooms.find(r =>
@@ -171,35 +173,44 @@ export default function ResidentModal({
     if (file) {
       setSelectedFile(file);
 
-      // Create an optimized Base64 data URL for instantaneous preview and persistent storage
+      // Create an immediate preview and persistent data URL
       const reader = new FileReader();
       reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          // Scale to max 480x480 for fast rendering and storage efficiency
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 480;
+        const rawDataUrl = event.target.result;
+        setPreviewUrl(rawDataUrl);
+        setFormData(prev => ({ ...prev, photo_url: rawDataUrl }));
 
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
+        try {
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const maxDim = 480;
+              let width = img.width;
+              let height = img.height;
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
 
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-          setPreviewUrl(compressedDataUrl);
-          setFormData(prev => ({ ...prev, photo_url: compressedDataUrl }));
-        };
-        img.src = event.target.result;
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+              setPreviewUrl(compressedDataUrl);
+              setFormData(prev => ({ ...prev, photo_url: compressedDataUrl }));
+            } catch (canvasErr) {}
+          };
+          img.src = rawDataUrl;
+        } catch (imgErr) {}
       };
       reader.readAsDataURL(file);
     }

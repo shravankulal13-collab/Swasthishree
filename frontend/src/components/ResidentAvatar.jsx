@@ -13,6 +13,17 @@ const GRADIENT_PALETTES = [
   'linear-gradient(135deg, #e11d48 0%, #9f1239 100%)'  // Crimson Ruby
 ];
 
+export function isDummyPhoto(url) {
+  if (!url || typeof url !== 'string') return true;
+  const clean = url.trim().toLowerCase();
+  if (!clean || clean === 'null' || clean === 'undefined' || clean === 'none') return true;
+  if (clean.includes('unsplash.com')) return true;
+  if (clean.includes('placeholder')) return true;
+  if (clean.includes('dummy')) return true;
+  if (clean.includes('example.com')) return true;
+  return false;
+}
+
 function getInitials(name) {
   if (!name || typeof name !== 'string') return '';
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -44,12 +55,11 @@ export default function ResidentAvatar({
   const initials = getInitials(name);
   const backgroundGradient = getGradientForName(name);
 
-  // Clean check for valid non-dummy photo url
+  // Strict check for legitimate uploaded resident photo
   const hasValidPhoto =
-    photoUrl &&
+    Boolean(photoUrl) &&
     typeof photoUrl === 'string' &&
-    photoUrl.trim() !== '' &&
-    !photoUrl.includes('unsplash.com/photo-1534528741775-53994a69daeb') &&
+    !isDummyPhoto(photoUrl) &&
     !imageError;
 
   const fontPixelSize = Math.max(10, Math.round(size * 0.38));

@@ -41,6 +41,17 @@ function generateReceiptNumber() {
   return `REC-${year}-${rand}`;
 }
 
+function isDummyPhoto(url) {
+  if (!url || typeof url !== 'string') return true;
+  const clean = url.trim().toLowerCase();
+  if (!clean || clean === 'null' || clean === 'undefined' || clean === 'none') return true;
+  if (clean.includes('unsplash.com')) return true;
+  if (clean.includes('placeholder')) return true;
+  if (clean.includes('dummy')) return true;
+  if (clean.includes('example.com')) return true;
+  return false;
+}
+
 // Resident Data Normalizer & DB Mapper
 function formatResident(r) {
   if (!r) return null;
@@ -80,7 +91,8 @@ function formatResident(r) {
     monthly_rent: Number(r.monthly_rent || 7500),
     agent_name: agentName || r.agent_name || '',
     joining_payment_remarks: joiningRemarks || r.joining_payment_remarks || userNotes || '',
-    notes: userNotes
+    notes: userNotes,
+    photo_url: isDummyPhoto(r.photo_url) ? '' : r.photo_url
   };
 }
 
@@ -151,10 +163,10 @@ async function prepareResidentDbPayload(body, photoUrl) {
     updated_at: new Date().toISOString()
   };
 
-  if (photoUrl) {
+  if (photoUrl && !isDummyPhoto(photoUrl)) {
     payload.photo_url = photoUrl;
-  } else if (body.photo_url !== undefined) {
-    payload.photo_url = body.photo_url;
+  } else if (body.photo_url !== undefined && body.photo_url !== null) {
+    payload.photo_url = isDummyPhoto(body.photo_url) ? '' : body.photo_url;
   }
 
   return payload;
