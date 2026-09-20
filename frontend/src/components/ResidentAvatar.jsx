@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 
 const GRADIENT_PALETTES = [
@@ -54,6 +54,10 @@ export default function ResidentAvatar({
   const [imageError, setImageError] = useState(false);
   const initials = getInitials(name);
   const backgroundGradient = getGradientForName(name);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [photoUrl]);
 
   // Strict check for legitimate uploaded resident photo
   const hasValidPhoto =

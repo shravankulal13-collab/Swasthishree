@@ -133,16 +133,25 @@ function addDeletedId(key, id) {
   }
 }
 
+function extractValues(input) {
+  if (input instanceof FormData) {
+    const obj = {};
+    for (const [k, v] of input.entries()) {
+      if (k !== 'photo' && typeof v === 'string') {
+        obj[k] = v;
+      }
+    }
+    return obj;
+  }
+  if (typeof input === 'object' && input !== null) {
+    return { ...input };
+  }
+  return {};
+}
+
 // Convert FormData or plain object to standard resident format
 function normalizeResidentObject(input, id) {
-  let obj = {};
-  if (input instanceof FormData) {
-    for (const [k, v] of input.entries()) {
-      if (k !== 'photo') obj[k] = v;
-    }
-  } else if (typeof input === 'object' && input !== null) {
-    obj = { ...input };
-  }
+  const obj = extractValues(input);
 
   const depositVal = obj.deposit !== undefined && obj.deposit !== '' 
     ? Number(obj.deposit) 
@@ -364,7 +373,18 @@ export const api = {
   async updateResident(id, formDataOrJson) {
     const localResidents = getLocal('swasthishree_residents', []);
     const existing = localResidents.find(r => r.id === id) || {};
-    const updatedRes = normalizeResidentObject({ ...existing, ...formDataOrJson }, id);
+    const incoming = extractValues(formDataOrJson);
+
+    // If incoming explicitly provides a photo_url, use it. Otherwise retain existing photo if non-dummy.
+    const photoToKeep = incoming.photo_url !== undefined
+      ? (isDummyPhoto(incoming.photo_url) ? '' : incoming.photo_url)
+      : (isDummyPhoto(existing.photo_url) ? '' : (existing.photo_url || ''));
+
+    const updatedRes = normalizeResidentObject({
+      ...existing,
+      ...incoming,
+      photo_url: photoToKeep
+    }, id);
 
     // 1. Immediately persist to localStorage
     const index = localResidents.findIndex(r => r.id === id);
@@ -386,10 +406,11 @@ export const api = {
       if (res.ok) {
         const serverData = await res.json();
         if (serverData) {
+          const cleanServerPhoto = isDummyPhoto(serverData.photo_url) ? '' : serverData.photo_url;
           const merged = {
             ...updatedRes,
             ...serverData,
-            photo_url: serverData.photo_url || updatedRes.photo_url || ''
+            photo_url: cleanServerPhoto || updatedRes.photo_url || ''
           };
           const cur = getLocal('swasthishree_residents', []);
           const idx = cur.findIndex(r => r.id === id);
