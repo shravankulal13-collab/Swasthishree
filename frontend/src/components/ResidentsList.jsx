@@ -15,6 +15,7 @@ import {
   List,
   CreditCard
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 export default function ResidentsList({
   residents = [],
@@ -241,17 +242,12 @@ export default function ResidentsList({
               <div key={res.id} className="warm-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 {/* Photo & Name */}
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                  <img
-                    src={res.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'}
-                    alt={res.name}
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '14px',
-                      objectFit: 'cover',
-                      border: '2px solid var(--border-color)',
-                      flexShrink: 0
-                    }}
+                  <ResidentAvatar
+                    name={res.name}
+                    photoUrl={res.photo_url}
+                    size={60}
+                    borderRadius="14px"
+                    border="2px solid var(--border-color)"
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
@@ -425,10 +421,11 @@ export default function ResidentsList({
                     <tr key={res.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img
-                            src={res.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
-                            alt={res.name}
-                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                          <ResidentAvatar
+                            name={res.name}
+                            photoUrl={res.photo_url}
+                            size={36}
+                            borderRadius="50%"
                           />
                           <div>
                             <div style={{ fontWeight: 800 }}>{res.name}</div>

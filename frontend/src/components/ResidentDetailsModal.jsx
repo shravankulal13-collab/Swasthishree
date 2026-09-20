@@ -15,6 +15,7 @@ import {
   UserCheck,
   FileText
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 export default function ResidentDetailsModal({
   resident,
@@ -55,18 +56,13 @@ export default function ResidentDetailsModal({
             <X size={16} />
           </button>
 
-          <img
-            src={resident.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80'}
-            alt={resident.name}
-            style={{
-              width: '76px',
-              height: '76px',
-              borderRadius: '18px',
-              objectFit: 'cover',
-              border: '3px solid #ffffff',
-              boxShadow: 'var(--shadow-card)',
-              flexShrink: 0
-            }}
+          <ResidentAvatar
+            name={resident.name}
+            photoUrl={resident.photo_url}
+            size={76}
+            borderRadius="18px"
+            border="3px solid #ffffff"
+            style={{ boxShadow: 'var(--shadow-card)' }}
           />
 
           <div style={{ flex: 1, minWidth: '180px' }}>

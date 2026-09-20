@@ -12,6 +12,7 @@ import {
   CreditCard,
   Plus
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 export default function DashboardOverview({
   stats,
@@ -460,10 +461,11 @@ export default function DashboardOverview({
                   transition: 'var(--transition)'
                 }}
               >
-                <img
-                  src={res.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
-                  alt={res.name}
-                  style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                <ResidentAvatar
+                  name={res.name}
+                  photoUrl={res.photo_url}
+                  size={42}
+                  borderRadius="50%"
                 />
                 <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <div style={{ fontWeight: 800, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

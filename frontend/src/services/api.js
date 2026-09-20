@@ -275,7 +275,13 @@ export const api = {
         const remoteData = await res.json();
         if (Array.isArray(remoteData)) {
           // Merge remote with local, excluding deleted IDs
-          const remoteFiltered = remoteData.filter(r => !deletedIds.has(r.id));
+          const remoteFiltered = remoteData.filter(r => !deletedIds.has(r.id)).map(r => {
+            const localMatch = localResidents.find(lr => lr.id === r.id);
+            if (localMatch && localMatch.photo_url && !r.photo_url) {
+              return { ...r, photo_url: localMatch.photo_url };
+            }
+            return r;
+          });
           
           // Combine with any local residents not yet on backend
           const remoteIdSet = new Set(remoteFiltered.map(r => r.id));
@@ -315,7 +321,11 @@ export const api = {
       if (res.ok) {
         const serverData = await res.json();
         if (serverData && serverData.id) {
-          const finalRes = { ...newRes, ...serverData };
+          const finalRes = {
+            ...newRes,
+            ...serverData,
+            photo_url: serverData.photo_url || newRes.photo_url || ''
+          };
           const refreshed = [finalRes, ...localResidents.filter(r => r.id !== newRes.id && r.id !== finalRes.id)];
           setLocal('swasthishree_residents', refreshed);
           return finalRes;
@@ -353,7 +363,11 @@ export const api = {
       if (res.ok) {
         const serverData = await res.json();
         if (serverData) {
-          const merged = { ...updatedRes, ...serverData };
+          const merged = {
+            ...updatedRes,
+            ...serverData,
+            photo_url: serverData.photo_url || updatedRes.photo_url || ''
+          };
           const cur = getLocal('swasthishree_residents', []);
           const idx = cur.findIndex(r => r.id === id);
           if (idx !== -1) cur[idx] = merged;

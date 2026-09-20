@@ -13,8 +13,10 @@ import {
   UserCheck,
   FileText,
   BedDouble,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 export default function ResidentModal({
   isOpen,
@@ -165,11 +167,48 @@ export default function ResidentModal({
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files && e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+
+      // Create an optimized Base64 data URL for instantaneous preview and persistent storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Scale to max 480x480 for fast rendering and storage efficiency
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 480;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          setPreviewUrl(compressedDataUrl);
+          setFormData(prev => ({ ...prev, photo_url: compressedDataUrl }));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemovePhoto = () => {
+    setSelectedFile(null);
+    setPreviewUrl('');
+    setFormData(prev => ({ ...prev, photo_url: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -188,6 +227,7 @@ export default function ResidentModal({
 
       const submissionPayload = {
         ...formData,
+        photo_url: formData.photo_url || previewUrl || '',
         room_id: selectedRoom ? selectedRoom.id : (formData.room_id || null),
         room_number: selectedRoom ? selectedRoom.room_number : (formData.room_number || ''),
         guardian_name: formData.father_name,
@@ -261,20 +301,33 @@ export default function ResidentModal({
 
             {/* Photo Upload Section */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px', padding: '14px', background: 'var(--bg-input)', borderRadius: 'var(--radius-lg)', flexWrap: 'wrap' }}>
-              <img
-                src={previewUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'}
-                alt="Avatar"
-                style={{ width: '68px', height: '68px', borderRadius: '16px', objectFit: 'cover', border: '2px solid var(--color-coral)', flexShrink: 0 }}
+              <ResidentAvatar
+                name={formData.name || 'Resident'}
+                photoUrl={previewUrl || formData.photo_url}
+                size={68}
+                borderRadius="16px"
+                border="2.5px solid var(--color-coral)"
               />
               <div style={{ flex: 1, minWidth: '180px' }}>
                 <label className="form-label" style={{ marginBottom: '4px' }}>Resident Photo</label>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>
-                    <Upload size={14} /> Upload Picture
+                    <Upload size={14} /> {previewUrl || formData.photo_url ? 'Change Picture' : 'Upload Picture'}
                     <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
                   </label>
+                  {(previewUrl || formData.photo_url) && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      className="btn btn-secondary btn-sm"
+                      style={{ color: '#be123c', borderColor: '#fecdd3' }}
+                      title="Remove Photo"
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  )}
                   <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    {selectedFile ? selectedFile.name : 'Optional photo'}
+                    {selectedFile ? selectedFile.name : (formData.photo_url ? 'Photo attached' : 'Optional photograph')}
                   </span>
                 </div>
               </div>

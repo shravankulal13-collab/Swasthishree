@@ -17,6 +17,7 @@ import {
   Banknote,
   Plus
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 const MONTH_NAMES = [
   'January',
@@ -192,10 +193,12 @@ export default function MonthlyPaymentDetailsModal({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <img
-                  src={resident.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                  alt={resident.name}
-                  style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', border: '2px solid #ea580c' }}
+                <ResidentAvatar
+                  name={resident.name}
+                  photoUrl={resident.photo_url}
+                  size={56}
+                  borderRadius="14px"
+                  border="2px solid #ea580c"
                 />
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>

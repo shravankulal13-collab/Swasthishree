@@ -252,52 +252,44 @@ async function checkSupabaseStatus() {
 async function uploadResidentPhoto(file) {
   if (!file) return null;
 
+  // Compute Base64 data URL fallback so uploaded images NEVER get lost
+  let base64Fallback = null;
+  if (file.buffer) {
+    const mime = file.mimetype || 'image/jpeg';
+    base64Fallback = `data:${mime};base64,${file.buffer.toString('base64')}`;
+  }
+
   if (isSupabaseConfigured && supabase) {
     try {
-      const fileExt = path.extname(file.originalname) || '.jpg';
-
-      const fileName =
-        `resident_${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 8)}${fileExt}`;
-
+      const fileExt = path.extname(file.originalname || '') || '.jpg';
+      const fileName = `resident_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${fileExt}`;
       const filePath = `avatars/${fileName}`;
-
-      // Multer memoryStorage provides the file as a Buffer.
       const fileBuffer = file.buffer;
 
-      const { data, error } = await supabase.storage
-        .from('resident-photos')
-        .upload(filePath, fileBuffer, {
-          contentType: file.mimetype,
-          upsert: true
-        });
+      if (fileBuffer) {
+        const { data, error } = await supabase.storage
+          .from('resident-photos')
+          .upload(filePath, fileBuffer, {
+            contentType: file.mimetype || 'image/jpeg',
+            upsert: true
+          });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        const { data: publicUrlData } =
-          supabase.storage
+        if (!error && data) {
+          const { data: publicUrlData } = supabase.storage
             .from('resident-photos')
             .getPublicUrl(filePath);
 
-        return publicUrlData.publicUrl;
+          if (publicUrlData && publicUrlData.publicUrl) {
+            return publicUrlData.publicUrl;
+          }
+        }
       }
-
-      return null;
     } catch (err) {
-      console.error(
-        '⚠️ Supabase Storage upload error:',
-        err.message
-      );
-
-      return null;
+      console.error('⚠️ Supabase Storage upload notice (falling back to Base64 data URI):', err.message);
     }
   }
 
-  return null;
+  return base64Fallback;
 }
 
 module.exports = {

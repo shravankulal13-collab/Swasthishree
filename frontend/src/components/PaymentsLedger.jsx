@@ -16,6 +16,7 @@ import {
   Banknote,
   Filter
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -391,10 +392,11 @@ export default function PaymentsLedger({
                   <tr key={item.resident.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img
-                          src={item.resident.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&auto=format&fit=crop&q=80'}
-                          alt={item.resident.name}
-                          style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                        <ResidentAvatar
+                          name={item.resident.name}
+                          photoUrl={item.resident.photo_url}
+                          size={32}
+                          borderRadius="50%"
                         />
                         <div>
                           <div style={{ fontWeight: 800 }}>{item.resident.name}</div>

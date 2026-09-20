@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   UserPlus
 } from 'lucide-react';
+import ResidentAvatar from './ResidentAvatar';
 
 const COMMON_AMENITIES = [
   'Attached Washroom',
@@ -677,10 +678,11 @@ export default function RoomsView({
                             border: '1px solid var(--border-subtle)'
                           }}
                         >
-                          <img
-                            src={res.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&auto=format&fit=crop&q=80'}
-                            alt={res.name}
-                            style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
+                          <ResidentAvatar
+                            name={res.name}
+                            photoUrl={res.photo_url}
+                            size={22}
+                            borderRadius="50%"
                           />
                           <span style={{ fontWeight: 800, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {res.name}
